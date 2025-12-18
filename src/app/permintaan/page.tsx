@@ -15,7 +15,7 @@ import { CreateRequestModal } from "@/components/bloodRequest/CreateRequestModal
 import { RequestDetailModal } from "@/components/bloodRequest/RequestDetailModal";
 import { Pagination } from "@/components/common/Pagination";
 
-import { useBloodRequests, usePartners } from "@/hooks/useBloodRequests";
+import { useBloodRequests, usePartners, useBloodStock } from "@/hooks/useBloodRequests";
 import { FilterState, CreateRequestForm, BloodRequest } from "@/types/bloodRequest";
 import { formatDateToAPI } from "@/utils/formatters";
 import toast from "react-hot-toast";
@@ -31,6 +31,7 @@ const Permintaan: React.FC = () => {
   // Custom hooks for data fetching
   const { data, refetch } = useBloodRequests(user?.id, userRole);
   const { partners } = usePartners();
+  const { bloodStock } = useBloodStock(userRole === 'pmi' ? user?.id : undefined);
 
   // State management
   const [filters, setFilters] = useState<FilterState>({
@@ -135,6 +136,18 @@ const Permintaan: React.FC = () => {
     setCurrentPage(1);
   };
 
+  const handleCreatePickup = async (requestId: string) => {
+    // TODO: Implement create pickup schedule modal/page
+    toast.success("Fitur buat jadwal pickup akan segera hadir");
+    console.log("Create pickup for request:", requestId);
+  };
+
+  const handleCreateCampaign = async (requestId: string) => {
+    // TODO: Implement create campaign modal/page
+    toast.success("Fitur buat kampanye pemenuhan akan segera hadir");
+    console.log("Create campaign for request:", requestId);
+  };
+
   return (
     <ProtectedRoute>
       <Toaster position="top-right" />
@@ -171,9 +184,12 @@ const Permintaan: React.FC = () => {
             currentPage={currentPage}
             itemsPerPage={ITEMS_PER_PAGE}
             userRole={userRole}
+            bloodStock={bloodStock}
             onApprove={userRole === 'pmi' ? handleApprove : undefined}
             onReject={userRole === 'pmi' ? (id) => setShowRejectModal(id) : undefined}
             onViewDetail={(request) => setSelectedRequest(request)}
+            onCreatePickup={userRole === 'pmi' ? handleCreatePickup : undefined}
+            onCreateCampaign={userRole === 'pmi' ? handleCreateCampaign : undefined}
           />
 
           {/* Pagination */}

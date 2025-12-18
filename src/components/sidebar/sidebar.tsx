@@ -1,17 +1,21 @@
 "use client";
 
-import { LayoutDashboard, NotebookPen, NotebookTabs, Plus } from "lucide-react";
+import { LayoutDashboard, NotebookPen, Plus, Info, TruckIcon } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import StokDarahIcon from "../icons/stokDarah";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSidebar } from "@/context/sidebarContext"; // Import context
+import { useSidebar } from "@/context/sidebarContext";
+import { useAuth } from "@/context/authContext";
 
 export const Sidebar = () => {
   const pathname = usePathname();
   const { isShowSidebar } = useSidebar();
-  const menu = [
+  const { user } = useAuth();
+
+  // Menu untuk PMI
+  const pmiMenu = [
     {
       name: "Dashboard",
       icon: () => <LayoutDashboard color="#9AA2AC" />,
@@ -23,20 +27,38 @@ export const Sidebar = () => {
       url: "/permintaan",
     },
     {
-      name: "Pendonoran",
-      icon: () => <NotebookTabs color="#9AA2AC" />,
-      url: "/pendonoran",
-    },
-    {
       name: "Stok Darah",
       icon: () => <StokDarahIcon width={22} height={22} fill="#9AA2AC" />,
       url: "/stok-darah",
     },
+  ];
+
+  // Menu untuk Rumah Sakit
+  const hospitalMenu = [
     {
-      name: "User",
-      icon: "User",
+      name: "Dashboard",
+      icon: () => <LayoutDashboard color="#9AA2AC" />,
+      url: "/",
+    },
+    {
+      name: "Permintaan",
+      icon: () => <NotebookPen color="#9AA2AC" />,
+      url: "/permintaan",
+    },
+    {
+      name: "Informasi PMI",
+      icon: () => <Info color="#9AA2AC" />,
+      url: "/informasi-pmi",
+    },
+    {
+      name: "Pick Up",
+      icon: () => <TruckIcon color="#9AA2AC" />,
+      url: "/pickup",
     },
   ];
+
+  // Pilih menu berdasarkan tipe institusi
+  const menu = user?.institution_type === "hospital" ? hospitalMenu : pmiMenu;
 
   if (pathname === "/login") {
     return null;

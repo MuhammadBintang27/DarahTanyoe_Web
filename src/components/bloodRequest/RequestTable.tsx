@@ -1,4 +1,4 @@
-import { CheckCircle, XCircle, Clock, Package, AlertCircle } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Package, AlertCircle, Calendar, Megaphone } from 'lucide-react';
 import { BloodRequest } from '@/types/bloodRequest';
 import { StatusBadge } from './StatusBadge';
 import { formatDate, padId } from '@/utils/formatters';
@@ -9,9 +9,12 @@ interface RequestTableProps {
   currentPage: number;
   itemsPerPage: number;
   userRole: 'hospital' | 'pmi';
+  bloodStock?: Array<{ blood_type: string; quantity: number }>;
   onApprove?: (requestId: string) => void;
   onReject?: (requestId: string) => void;
   onViewDetail?: (request: BloodRequest) => void;
+  onCreatePickup?: (requestId: string) => void;
+  onCreateCampaign?: (requestId: string) => void;
 }
 
 export const RequestTable: React.FC<RequestTableProps> = ({
@@ -20,11 +23,20 @@ export const RequestTable: React.FC<RequestTableProps> = ({
   currentPage,
   itemsPerPage,
   userRole,
+  bloodStock = [],
   onApprove,
   onReject,
   onViewDetail,
+  onCreatePickup,
+  onCreateCampaign,
 }) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
+
+  // Helper function to check if blood stock is sufficient
+  const isStockSufficient = (bloodType: string, quantity: number): boolean => {
+    const stock = bloodStock.find(s => s.blood_type === bloodType);
+    return stock ? stock.quantity >= quantity : false;
+  };
 
   if (data.length === 0) {
     return (
@@ -124,9 +136,26 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                       </div>
                     )}
                     {row.status === 'approved' && (
-                      <div className="flex items-center gap-2 text-green-600">
-                        <Package size={16} />
-                        <span className="text-xs font-medium">Siap Diambil</span>
+                      <div className="flex gap-2">
+                        {isStockSufficient(row.blood_type, row.quantity) ? (
+                          <button
+                            onClick={() => onCreatePickup?.(row.id)}
+                            disabled={loading[row.id]}
+                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
+                          >
+                            <Calendar size={14} />
+                            Buat Jadwal Pickup
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => onCreateCampaign?.(row.id)}
+                            disabled={loading[row.id]}
+                            className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
+                          >
+                            <Megaphone size={14} />
+                            Buat Kampanye Pemenuhan
+                          </button>
+                        )}
                       </div>
                     )}
                     {row.status === 'in_fulfillment' && (

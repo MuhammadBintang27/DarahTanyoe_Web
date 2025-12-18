@@ -71,3 +71,30 @@ export const usePartners = () => {
 
   return { partners, loading };
 };
+
+export const useBloodStock = (userId: string | undefined) => {
+  const [bloodStock, setBloodStock] = useState<Array<{ blood_type: string; quantity: number }>>([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchBloodStock = async () => {
+    if (!userId) return;
+
+    try {
+      setLoading(true);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/partners/${userId}`);
+      const stockData = response.data.data?.blood_stock || [];
+      setBloodStock(stockData);
+    } catch (error) {
+      console.error('Error fetching blood stock:', error);
+      setBloodStock([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchBloodStock();
+  }, [userId]);
+
+  return { bloodStock, loading, refetch: fetchBloodStock };
+};
