@@ -8,8 +8,10 @@ import { ReactNode } from 'react';
 interface User {
   id: string;
   email: string;
-  full_name: string;
-  user_type: string;
+  full_name?: string;
+  institution_name?: string;
+  institution_type?: 'hospital' | 'pmi';
+  user_type?: string;
   [key: string]: any;
 }
 
@@ -118,14 +120,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log('[Auth] Current path:', pathname);
       console.log('[Auth] Is authenticated:', isLoggedIn);
       
-      // If at login page but already logged in, redirect to dashboard
-      if (isLoggedIn && (pathname === '/login')) {
-        console.log('[Auth] Redirecting to dashboard from login page');
+      // Public routes that don't require authentication
+      const publicRoutes = ['/login', '/register', '/'];
+      const isPublicRoute = publicRoutes.includes(pathname);
+      
+      // If at login/register page but already logged in, redirect to dashboard
+      if (isLoggedIn && (pathname === '/login' || pathname === '/register')) {
+        console.log('[Auth] Already logged in, redirecting to dashboard');
         router.replace('/');
       }
       
       // If at protected route but not logged in, redirect to login
-      if (!isLoggedIn && pathname !== '/login' && pathname !== '/') {
+      if (!isLoggedIn && !isPublicRoute) {
         console.log('[Auth] Not authenticated, redirecting to login');
         router.replace('/login');
       }

@@ -1,9 +1,18 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-primary: #AB4545;
-  --color-secondary: #E9B824;
+  --color-primary: #C85A54;
+  --color-primary-dark: #AB4545;
+  --color-secondary: #48C585;
+  --color-accent: #E9B824;
   --color-black_primary: #151515;
+  --color-bg-light: #F5E6E8;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
+
+body {
+  background: linear-gradient(135deg, #C85A54 0%, #AB4545 100%);
+  min-height: 100vh;
+}
+

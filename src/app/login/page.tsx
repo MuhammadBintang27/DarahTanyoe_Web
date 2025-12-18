@@ -3,12 +3,15 @@
 
 import React, { useEffect } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import Image from "next/image";
 
 const LoginPage = () => {
-  const [email, setEmail] = React.useState("");
+  const searchParams = useSearchParams();
+  const emailFromQuery = searchParams.get('email');
+  
+  const [email, setEmail] = React.useState(emailFromQuery || "");
   const [password, setPassword] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
   const [error, setError] = React.useState("");
@@ -25,6 +28,13 @@ const LoginPage = () => {
       router.replace("/");
     }
   }, [checkAuthStatus, router]);
+  
+  // Set email from query param if exists
+  useEffect(() => {
+    if (emailFromQuery) {
+      setEmail(emailFromQuery);
+    }
+  }, [emailFromQuery]);
 
   const submitLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +45,7 @@ const LoginPage = () => {
     console.log('[LoginPage] Attempting login for:', email);
     
     try {
-      const response = await axios.post(`${baseUrl}/users/masuk-web`, {
+      const response = await axios.post(`${baseUrl}/institutions/login`, {
         email,
         password,
       });
@@ -43,8 +53,8 @@ const LoginPage = () => {
       if (response.data.status === "SUCCESS") {
         console.log('[LoginPage] Login API success');
         
-        // First set the auth in context/localStorage
-        login(response.data.user, response.data.session);
+        // Use institution data instead of user data
+        login(response.data.institution, response.data.session);
         
         // Use a small delay before redirect to ensure storage is updated
         setTimeout(() => {
@@ -84,7 +94,10 @@ const LoginPage = () => {
       <div className="w-1/2 h-full flex flex-col items-center justify-center gap-4 bg-black/10 text-primary">
         <h2 className="font-bold text-5xl">Masuk</h2>
         <p className="font-light text-primary/50 mb-8">
-          Selamat Datang di Darah Tanyoe - Mitra
+          Selamat Datang di Darah Tanyoe - Portal Institusi
+        </p>
+        <p className="text-sm text-primary/60 mb-4">
+          *Pendonor silakan gunakan aplikasi mobile
         </p>
         <form
           onSubmit={submitLogin}
@@ -122,6 +135,17 @@ const LoginPage = () => {
           >
             {isLoading ? "Memproses..." : "Masuk"}
           </button>
+          
+          {/* Register Link */}
+          <p className="text-center text-primary/70 mt-6">
+            Belum punya akun?{" "}
+            <a 
+              href="/register" 
+              className="text-primary font-bold hover:underline"
+            >
+              Daftar di sini
+            </a>
+          </p>
         </form>
       </div>
     </div>
