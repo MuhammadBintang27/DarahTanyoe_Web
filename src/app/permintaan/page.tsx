@@ -13,6 +13,7 @@ import { RequestTable } from "@/components/bloodRequest/RequestTable";
 import { RejectModal } from "@/components/bloodRequest/RejectModal";
 import { CreateRequestModal } from "@/components/bloodRequest/CreateRequestModal";
 import { RequestDetailModal } from "@/components/bloodRequest/RequestDetailModal";
+import { CreatePickupModal } from "@/components/bloodRequest/CreatePickupModal";
 import { Pagination } from "@/components/common/Pagination";
 
 import { useBloodRequests, usePartners, useBloodStock } from "@/hooks/useBloodRequests";
@@ -43,6 +44,7 @@ const Permintaan: React.FC = () => {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showPickupModal, setShowPickupModal] = useState<BloodRequest | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<BloodRequest | null>(null);
 
   // Filter data
@@ -137,9 +139,45 @@ const Permintaan: React.FC = () => {
   };
 
   const handleCreatePickup = async (requestId: string) => {
-    // TODO: Implement create pickup schedule modal/page
-    toast.success("Fitur buat jadwal pickup akan segera hadir");
-    console.log("Create pickup for request:", requestId);
+    // Find the request to show in modal
+    const request = data.find(r => r.id === requestId);
+    if (request) {
+      setShowPickupModal(request);
+    }
+  };
+
+  const handleSubmitPickup = async (pickupData: { pickupDate: string; pickupTime: string; notes?: string }) => {
+    if (!showPickupModal) return;
+
+    try {
+      setLoading((prev) => ({ ...prev, [`pickup_${showPickupModal.id}`]: true }));
+
+      const token = localStorage.getItem("authToken");
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/pickup-schedules`,
+        {
+          requestId: showPickupModal.id,
+          pickupDate: pickupData.pickupDate,
+          pickupTime: pickupData.pickupTime,
+          notes: pickupData.notes,
+          pmiId: user?.id
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      toast.success(response.data.message || "Jadwal pickup berhasil dibuat");
+      setShowPickupModal(null);
+      refetch();
+    } catch (error: any) {
+      console.error("Error creating pickup schedule:", error);
+      toast.error(error.response?.data?.message || "Gagal membuat jadwal pickup");
+    } finally {
+      setLoading((prev) => ({ ...prev, [`pickup_${showPickupModal.id}`]: false }));
+    }
   };
 
   const handleCreateCampaign = async (requestId: string) => {
@@ -211,12 +249,29 @@ const Permintaan: React.FC = () => {
 
         {/* Modals - Only for PMI */}
         {userRole === 'pmi' && (
-          <RejectModal
-            isOpen={!!showRejectModal}
-            loading={loading[showRejectModal || ''] || false}
-            onClose={() => setShowRejectModal(null)}
-            onConfirm={handleReject}
-          />
+          <>
+            <RejectModal
+              isOpen={!!showRejectModal}
+              loading={loading[showRejectModal || ''] || false}
+              onClose={() => setShowRejectModal(null)}
+              onConfirm={handleReject}
+            />
+
+            {/* Create Pickup Modal */}
+            {showPickupModal && (
+              <CreatePickupModal
+                isOpen={!!showPickupModal}
+                loading={loading[`pickup_${showPickupModal.id}`] || false}
+                requestId={showPickupModal.id}
+                patientName={showPickupModal.patient_name}
+                bloodType={showPickupModal.blood_type}
+                quantity={showPickupModal.quantity}
+                hospitalName={showPickupModal.requester?.institution_name || 'Rumah Sakit'}
+                onClose={() => setShowPickupModal(null)}
+                onSubmit={handleSubmitPickup}
+              />
+            )}
+          </>
         )}
 
         {/* Create Request Modal - Only for Hospital */}

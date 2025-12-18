@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, NotebookPen, Plus, Info, TruckIcon } from "lucide-react";
+import { LayoutDashboard, NotebookPen, Plus, Info, TruckIcon, History } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import StokDarahIcon from "../icons/stokDarah";
@@ -30,6 +30,16 @@ export const Sidebar = () => {
       name: "Stok Darah",
       icon: () => <StokDarahIcon width={22} height={22} fill="#9AA2AC" />,
       url: "/stok-darah",
+    },
+    {
+      name: "Pick Up",
+      icon: () => <TruckIcon color="#9AA2AC" />,
+      url: "/pickup",
+    },
+    {
+      name: "Riwayat Stok",
+      icon: () => <History color="#9AA2AC" />,
+      url: "/riwayat-stok",
     },
   ];
 
