@@ -5,6 +5,7 @@ import { createContext, useContext, useState, ReactNode } from "react";
 interface NotifContextProps {
   isShowNotif: boolean;
   toggleNotif: () => void;
+  closeNotif: () => void;
 }
 
 const NotifContext = createContext<NotifContextProps | undefined>(undefined);
@@ -13,9 +14,10 @@ export const NotifProvider = ({ children }: { children: ReactNode }) => {
   const [isShowNotif, setIsShowNotif] = useState(false);
 
   const toggleNotif = () => setIsShowNotif((prev) => !prev);
+  const closeNotif = () => setIsShowNotif(false);
 
   return (
-    <NotifContext.Provider value={{ isShowNotif, toggleNotif }}>
+    <NotifContext.Provider value={{ isShowNotif, toggleNotif, closeNotif }}>
       {children}
     </NotifContext.Provider>
   );
