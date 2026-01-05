@@ -8,11 +8,13 @@ import { INSTITUTION_TYPES } from "@/constants/user";
 import { RegisterInstitutionData } from "@/types/user";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { LocationPicker } from "@/components/location/LocationPicker";
 
 const RegisterPage = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   
   const [formData, setFormData] = useState<RegisterInstitutionData>({
     institution_type: "" as any,
@@ -37,6 +39,27 @@ const RegisterPage = () => {
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[id];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleLocationSelect = (locationData: { latitude: number; longitude: number; address: string }) => {
+    setLocation({ latitude: locationData.latitude, longitude: locationData.longitude });
+    
+    // Update address jika kosong atau update dari map
+    if (!formData.address || formData.address.trim().length < 10) {
+      setFormData((prev) => ({
+        ...prev,
+        address: locationData.address,
+      }));
+    }
+
+    // Clear location error if exists
+    if (errors.location) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.location;
         return newErrors;
       });
     }
@@ -67,6 +90,10 @@ const RegisterPage = () => {
       newErrors.address = "Alamat minimal 10 karakter";
     }
 
+    if (!location) {
+      newErrors.location = "Mohon pilih titik lokasi di peta";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -85,8 +112,8 @@ const RegisterPage = () => {
     try {
       const payload = {
         ...formData,
-        latitude: 0,
-        longitude: 0,
+        latitude: location?.latitude || 0,
+        longitude: location?.longitude || 0,
       };
 
       const response = await axios.post(`${baseUrl}/institutions/register`, payload);
@@ -261,6 +288,24 @@ const RegisterPage = () => {
             />
             {errors.address && (
               <span className="text-red-500 text-sm">{errors.address}</span>
+            )}
+          </div>
+
+          {/* Location Picker */}
+          <div className="flex flex-col gap-2 w-full">
+            <label className="font-bold">
+              Titik Lokasi <span className="text-red-500">*</span>
+            </label>
+            <p className="text-sm text-primary/60 mb-2">
+              Pilih titik lokasi persis institusi Anda di peta untuk mempermudah pencarian donor terdekat
+            </p>
+            <LocationPicker
+              onLocationSelect={handleLocationSelect}
+              initialLocation={location || undefined}
+              defaultAddress={formData.address}
+            />
+            {errors.location && (
+              <span className="text-red-500 text-sm">{errors.location}</span>
             )}
           </div>
 

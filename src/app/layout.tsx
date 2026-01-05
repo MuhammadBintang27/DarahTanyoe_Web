@@ -6,6 +6,7 @@ import "./globals.css";
 import { NotifProvider } from "@/context/notifContext";
 import MainLayout from "@/components/layout/mainLayout";
 import { AuthProvider } from "@/context/authContext";
+import { FulfillmentProvider } from "@/context/FulfillmentContext";
 import { Toaster } from "sonner";
 
 const geistSans = Geist({
@@ -38,10 +39,12 @@ export default function RootLayout({
       <AuthProvider>
         <SidebarProvider>
           <NotifProvider>
-            <body className={`${dmSans.className} antialiased bg-primary pr-8`}>
-              <Toaster position="top-right" richColors />
-              <MainLayout>{children}</MainLayout>
-            </body>
+            <FulfillmentProvider>
+              <body className={`${dmSans.className} antialiased bg-primary pr-8`}>
+                <Toaster position="top-right" richColors />
+                <MainLayout>{children}</MainLayout>
+              </body>
+            </FulfillmentProvider>
           </NotifProvider>
         </SidebarProvider>
       </AuthProvider>

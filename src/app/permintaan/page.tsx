@@ -45,6 +45,7 @@ const Permintaan: React.FC = () => {
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showPickupModal, setShowPickupModal] = useState<BloodRequest | null>(null);
+  const [showCampaignModal, setShowCampaignModal] = useState<BloodRequest | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<BloodRequest | null>(null);
 
   // Filter data
@@ -170,8 +171,14 @@ const Permintaan: React.FC = () => {
       );
 
       toast.success(response.data.message || "Jadwal pickup berhasil dibuat");
+      
+      // Close modal immediately
       setShowPickupModal(null);
-      refetch();
+      
+      // Refetch data after a short delay to let backend process
+      setTimeout(() => {
+        refetch();
+      }, 500);
     } catch (error: any) {
       console.error("Error creating pickup schedule:", error);
       toast.error(error.response?.data?.message || "Gagal membuat jadwal pickup");
@@ -181,9 +188,67 @@ const Permintaan: React.FC = () => {
   };
 
   const handleCreateCampaign = async (requestId: string) => {
-    // TODO: Implement create campaign modal/page
-    toast.success("Fitur buat kampanye pemenuhan akan segera hadir");
-    console.log("Create campaign for request:", requestId);
+    // Find the request to show modal
+    const request = data.find(r => r.id === requestId);
+    if (request) {
+      setShowCampaignModal(request);
+    }
+  };
+
+  const confirmCreateCampaign = async () => {
+    if (!showCampaignModal) return;
+    
+    try {
+      setLoading((prev) => ({ ...prev, [`campaign_${showCampaignModal.id}`]: true }));
+
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+      console.log('API URL:', API_BASE_URL);
+
+      // Buat fulfillment request dengan data lengkap
+      const payload = {
+        blood_request_id: showCampaignModal.id,
+        pmi_id: user?.id, // PMI ID dari user yang login
+        patient_name: showCampaignModal.patient_name,
+        blood_type: showCampaignModal.blood_type,
+        quantity_needed: showCampaignModal.quantity,
+        urgency_level: showCampaignModal.urgency_level || 'medium',
+        search_radius_km: 20,
+        target_donors: 50
+      };
+
+      console.log('Payload:', payload);
+
+      const response = await axios.post(
+        `${API_BASE_URL}/fulfillment`,
+        payload
+      );
+
+      console.log('Response:', response.data);
+
+      // Check if response is successful (status 200/201 and status === 'SUCCESS')
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Kampanye pemenuhan berhasil dibuat!");
+        
+        // Get fulfillment ID from response
+        const fulfillmentId = response.data.data?.fulfillment?.id || response.data.fulfillment?.id;
+        
+        setShowCampaignModal(null);
+        refetch();
+        
+        // Redirect ke halaman pemenuhan
+        if (fulfillmentId) {
+          setTimeout(() => {
+            window.location.href = `/pemenuhan/${fulfillmentId}`;
+          }, 1000);
+        }
+      }
+    } catch (error: any) {
+      console.error("Error creating campaign:", error);
+      console.error("Error response:", error.response?.data);
+      toast.error(error.response?.data?.message || error.message || "Gagal membuat kampanye pemenuhan");
+    } finally {
+      setLoading((prev) => ({ ...prev, [`campaign_${showCampaignModal.id}`]: false }));
+    }
   };
 
   return (
@@ -270,6 +335,66 @@ const Permintaan: React.FC = () => {
                 onClose={() => setShowPickupModal(null)}
                 onSubmit={handleSubmitPickup}
               />
+            )}
+
+            {/* Create Campaign Modal */}
+            {showCampaignModal && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+                  <h3 className="text-xl font-bold text-gray-900 mb-4">
+                    Buat Kampanye Pemenuhan
+                  </h3>
+                  
+                  <div className="mb-6 space-y-3">
+                    <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                      <p className="text-sm text-orange-800 mb-2">
+                        <strong>Stok tidak mencukupi!</strong>
+                      </p>
+                      <p className="text-xs text-orange-700">
+                        Sistem akan mencari donor yang sesuai dalam radius 20km dan mengirimkan notifikasi kepada mereka.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Golongan Darah:</span>
+                        <span className="font-semibold text-gray-900">{showCampaignModal.blood_type}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Jumlah Dibutuhkan:</span>
+                        <span className="font-semibold text-gray-900">{showCampaignModal.quantity} kantong</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Nama Pasien:</span>
+                        <span className="font-semibold text-gray-900">{showCampaignModal.patient_name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Rumah Sakit:</span>
+                        <span className="font-semibold text-gray-900">
+                          {showCampaignModal.requester?.institution_name || '-'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowCampaignModal(null)}
+                      disabled={loading[`campaign_${showCampaignModal.id}`]}
+                      className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={confirmCreateCampaign}
+                      disabled={loading[`campaign_${showCampaignModal.id}`]}
+                      className="flex-1 px-4 py-2.5 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 disabled:opacity-50 transition-colors"
+                    >
+                      {loading[`campaign_${showCampaignModal.id}`] ? 'Membuat...' : 'Buat Kampanye'}
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </>
         )}

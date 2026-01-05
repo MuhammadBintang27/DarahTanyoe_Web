@@ -16,6 +16,11 @@ export const STATUS_MAP: Record<RequestStatus, StatusInfo> = {
     color: 'text-blue-800',
     bgColor: 'bg-blue-100',
   },
+  pickup_scheduled: {
+    label: 'Pickup Scheduled',
+    color: 'text-purple-800',
+    bgColor: 'bg-purple-100',
+  },
   rejected: {
     label: 'Reject',
     color: 'text-red-800',

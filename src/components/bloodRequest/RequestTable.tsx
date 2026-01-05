@@ -158,10 +158,28 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                         )}
                       </div>
                     )}
+                    {row.status === 'ready' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onCreatePickup?.(row.id)}
+                          disabled={loading[row.id]}
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
+                        >
+                          <Calendar size={14} />
+                          Buat Jadwal Pickup
+                        </button>
+                      </div>
+                    )}
                     {row.status === 'in_fulfillment' && (
                       <div className="flex items-center gap-2 text-blue-600">
                         <Clock size={16} />
                         <span className="text-xs font-medium">Sedang Dipenuhi</span>
+                      </div>
+                    )}
+                    {row.status === 'pickup_scheduled' && (
+                      <div className="flex items-center gap-2 text-purple-600">
+                        <Package size={16} />
+                        <span className="text-xs font-medium">Pickup Dijadwalkan</span>
                       </div>
                     )}
                     {(row.status === 'rejected' ||

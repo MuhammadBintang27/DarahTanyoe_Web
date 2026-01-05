@@ -41,6 +41,7 @@ export type RequestStatus =
   | 'pending' 
   | 'approved' 
   | 'in_fulfillment' 
+  | 'pickup_scheduled' 
   | 'rejected' 
   | 'ready' 
   | 'confirmed' 
