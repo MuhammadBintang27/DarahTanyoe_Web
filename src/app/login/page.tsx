@@ -1,16 +1,16 @@
 // app/login/page.tsx
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import Image from "next/image";
 
-const LoginPage = () => {
+const LoginContent = () => {
   const searchParams = useSearchParams();
   const emailFromQuery = searchParams.get('email');
-  
+
   const [email, setEmail] = React.useState(emailFromQuery || "");
   const [password, setPassword] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
@@ -22,13 +22,13 @@ const LoginPage = () => {
   useEffect(() => {
     const isLoggedIn = checkAuthStatus();
     console.log('[LoginPage] Initial auth check:', isLoggedIn);
-    
+
     if (isLoggedIn) {
       console.log('[LoginPage] Already logged in, redirecting to dashboard');
       router.replace("/");
     }
   }, [checkAuthStatus, router]);
-  
+
   // Set email from query param if exists
   useEffect(() => {
     if (emailFromQuery) {
@@ -40,36 +40,29 @@ const LoginPage = () => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-    
+
     const baseUrl = process.env.NEXT_PUBLIC_API_URL;
     console.log('[LoginPage] Attempting login for:', email);
-    
+
     try {
       const response = await axios.post(`${baseUrl}/institutions/login`, {
         email,
         password,
       });
-      
-      if (response.data.status === "SUCCESS") {
-        console.log('[LoginPage] Login API success');
-        
-        // Use institution data instead of user data
-        login(response.data.institution, response.data.session);
-        
-        // Use a small delay before redirect to ensure storage is updated
-        setTimeout(() => {
-          console.log('[LoginPage] Redirecting to dashboard after login');
-          router.push("/");
-        }, 100);
+
+      console.log('[LoginPage] Login response:', response.data);
+
+      if (response.data.success) {
+        const { token, institution } = response.data.data;
+        login(token, institution);
+        console.log('[LoginPage] Login successful, redirecting to dashboard');
+        router.replace("/");
       } else {
-        setError("Login failed. Please check your credentials.");
+        setError(response.data.message || "Login failed");
       }
-    } catch (error: any) {
-      console.error("[LoginPage] Login error:", error);
-      setError(
-        error.response?.data?.message || 
-        "Login failed. Please check your credentials and try again."
-      );
+    } catch (err: any) {
+      console.error('[LoginPage] Login error:', err);
+      setError(err.response?.data?.message || "An error occurred during login");
     } finally {
       setIsLoading(false);
     }
@@ -135,12 +128,12 @@ const LoginPage = () => {
           >
             {isLoading ? "Memproses..." : "Masuk"}
           </button>
-          
+
           {/* Register Link */}
           <p className="text-center text-primary/70 mt-6">
             Belum punya akun?{" "}
-            <a 
-              href="/register" 
+            <a
+              href="/register"
               className="text-primary font-bold hover:underline"
             >
               Daftar di sini
@@ -149,6 +142,14 @@ const LoginPage = () => {
         </form>
       </div>
     </div>
+  );
+};
+
+const LoginPage = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 };
 
