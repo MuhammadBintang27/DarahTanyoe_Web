@@ -204,7 +204,7 @@ const Permintaan: React.FC = () => {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
       console.log('API URL:', API_BASE_URL);
 
-      // Buat fulfillment request dengan data lengkap
+      // Step 1: Search and Create Campaign dengan data lengkap
       const payload = {
         blood_request_id: showCampaignModal.id,
         pmi_id: user?.id, // PMI ID dari user yang login
@@ -218,19 +218,29 @@ const Permintaan: React.FC = () => {
 
       console.log('Payload:', payload);
 
+      // Call Step 1 endpoint: search-and-create
       const response = await axios.post(
-        `${API_BASE_URL}/fulfillment`,
+        `${API_BASE_URL}/fulfillment/search-and-create`,
         payload
       );
 
       console.log('Response:', response.data);
 
-      // Check if response is successful (status 200/201 and status === 'SUCCESS')
+      // Check if response is successful
+      // Check if response is successful
       if (response.status === 200 || response.status === 201) {
-        toast.success("Kampanye pemenuhan berhasil dibuat!");
+        toast.success("Campaign berhasil dibuat! Menemukan donor eligible.");
         
         // Get fulfillment ID from response
-        const fulfillmentId = response.data.data?.fulfillment?.id || response.data.fulfillment?.id;
+        const fulfillmentId = response.data.fulfillment_id || response.data.data?.fulfillment_id;
+        
+        // Store campaign data in session storage for slider view
+        if (fulfillmentId && response.data) {
+          sessionStorage.setItem(
+            `fulfillment_${fulfillmentId}`,
+            JSON.stringify(response.data)
+          );
+        }
         
         setShowCampaignModal(null);
         refetch();

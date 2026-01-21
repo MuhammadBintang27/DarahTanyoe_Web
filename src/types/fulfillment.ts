@@ -18,6 +18,7 @@ export type FulfillmentStatus =
   | 'cancelled';
 
 export type ConfirmationStatus =
+  | 'pending_notification'
   | 'pending'
   | 'confirmed'
   | 'rejected'

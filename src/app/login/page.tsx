@@ -52,9 +52,9 @@ const LoginContent = () => {
 
       console.log('[LoginPage] Login response:', response.data);
 
-      if (response.data.success) {
-        const { token, institution } = response.data.data;
-        login(token, institution);
+      if (response.data.status === 'SUCCESS') {
+        const { session, institution } = response.data;
+        login(institution, session);
         console.log('[LoginPage] Login successful, redirecting to dashboard');
         router.replace("/");
       } else {
