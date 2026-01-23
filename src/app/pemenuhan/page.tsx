@@ -5,15 +5,22 @@ import { useFulfillment } from '@/context/FulfillmentContext';
 import FulfillmentCard from '@/components/FulfillmentCard';
 import { useRouter } from 'next/navigation';
 import { FulfillmentFilters } from '@/types/fulfillment';
+import { useAuth } from '@/context/authContext';
 
 export default function PemenuhanPage() {
   const router = useRouter();
+  const { user } = useAuth();
   const { fulfillments, loading, error, fetchFulfillments } = useFulfillment();
   const [filters, setFilters] = useState<FulfillmentFilters>({});
 
   useEffect(() => {
-    fetchFulfillments(filters);
-  }, [filters]);
+    // Add pmi_id to filters if user is PMI
+    const filtersWithUser = { ...filters };
+    if (user?.id && user?.institution_type === 'pmi') {
+      filtersWithUser.pmi_id = user.id;
+    }
+    fetchFulfillments(filtersWithUser);
+  }, [filters, user?.id, user?.institution_type, fetchFulfillments]);
 
   const handleFilterChange = (key: keyof FulfillmentFilters, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
