@@ -114,31 +114,26 @@ export default function VerifikasiPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="p-6">
       <Toaster position="top-right" />
       
       {/* Header */}
-      <div className="bg-white shadow">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="mb-6">
           <button
             onClick={() => router.push(`/pemenuhan/${fulfillmentId}`)}
-            className="text-blue-600 hover:text-blue-700 font-medium mb-4 flex items-center gap-2"
+            className="text-white hover:text-white font-medium mb-4 flex items-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Kembali
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Verifikasi Donor</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-3xl font-bold text-white">Verifikasi Donor</h1>
+          <p className="mt-2 text-sm text-white">
             Verifikasi kode donor dan proses donasi darah
           </p>
-          
-        
         </div>
-      </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {!verifiedDonor ? (
           /* Verification Form */
           <CodeVerificationForm onVerify={handleVerify} loading={loading} />
@@ -194,7 +189,7 @@ export default function VerifikasiPage() {
             </div>
 
             {/* Donation Completion Form */}
-            <form onSubmit={handleCompleteDonation} className="bg-white rounded-lg shadow p-6">
+            <form onSubmit={handleCompleteDonation} className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
                 Proses Donasi
               </h3>
@@ -289,7 +284,6 @@ export default function VerifikasiPage() {
             </div>
           </div>
         )}
-      </div>
     </div>
   );
 }

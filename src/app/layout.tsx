@@ -8,6 +8,7 @@ import MainLayout from "@/components/layout/mainLayout";
 import { AuthProvider } from "@/context/authContext";
 import { FulfillmentProvider } from "@/context/FulfillmentContext";
 import { Toaster } from "sonner";
+import { RootLayoutWrapper } from "@/components/layout/rootLayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,7 +43,7 @@ export default function RootLayout({
             <FulfillmentProvider>
               <body className={`${dmSans.className} antialiased bg-primary pr-8`}>
                 <Toaster position="top-right" richColors />
-                <MainLayout>{children}</MainLayout>
+                <RootLayoutWrapper>{children}</RootLayoutWrapper>
               </body>
             </FulfillmentProvider>
           </NotifProvider>

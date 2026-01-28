@@ -17,6 +17,8 @@ interface EligibleDonor {
   distance_km?: number;
   donation_score?: number;
   blood_type?: string;
+  full_name?: string;
+  name?: string;
 }
 
 export default function FulfillmentDetailPage() {
@@ -70,7 +72,7 @@ export default function FulfillmentDetailPage() {
 
       if (response.data.eligible_donors) {
         setEligibleDonorsFromSearch(response.data.eligible_donors);
-        setSelectedDonorCount(1);
+        setSelectedDonorCount(Math.min(response.data.eligible_donors.length, 1)); // Start with 1 but allow up to max
         setShowDonorSearch(true);
         toast.success(`Ditemukan ${response.data.eligible_donors_count} donor potensial!`);
       }
@@ -163,58 +165,54 @@ export default function FulfillmentDetailPage() {
   return (
     <ProtectedRoute>
       <Toaster position="top-right" />
-      <div className="min-h-screen bg-gray-50">
+      <div className="p-6">
         {/* Header */}
-        <div className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <button
-              onClick={() => router.push('/pemenuhan')}
-              className="text-blue-600 hover:text-blue-700 font-medium mb-4 flex items-center gap-2"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Kembali
-            </button>
-            <div className="flex items-start justify-between">
+        <div className="mb-6">
+          <button
+            onClick={() => router.push('/pemenuhan')}
+            className="text-white hover:text-gray-100 font-medium mb-4 flex items-center gap-2 transition-colors"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Kembali
+          </button>
+          <div className="flex items-start justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-white">
                   Pemenuhan untuk {currentFulfillment?.patient_name}
                 </h1>
-                <p className="mt-2 text-sm text-gray-600">ID: {currentFulfillment?.id}</p>
+                <p className="mt-2 mb-6 text-sm text-white">ID: {currentFulfillment?.id}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 {!showDonorSearch && (
                   <button
                     onClick={handleSearchDonors}
                     disabled={searchingDonors || currentFulfillment?.status === 'fulfilled'}
                     title={currentFulfillment?.status === 'fulfilled' ? 'Pencarian pendonor sudah ditutup (terpenuhi)' : ''}
-                    className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-teal-500 text-white px-4 py-2 rounded-lg font-medium border-2 border-white hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {searchingDonors ? '⏳ Mencari...' : currentFulfillment?.status === 'fulfilled' ? '✓ Sudah Terpenuhi' : '🔍 Cari Pendonor Eligible'}
+                    {searchingDonors ? '⏳ Mencari...' : currentFulfillment?.status === 'fulfilled' ? '✓ Sudah Terpenuhi' : ' Cari Pendonor'}
                   </button>
                 )}
                 <button
                   onClick={() => router.push(`/pemenuhan/${fulfillmentId}/verifikasi`)}
-                  className="bg-purple-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-purple-700"
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium border-2 border-white hover:bg-orange-600 transition-colors"
                 >
                   Verifikasi Donor
                 </button>
                 {['initiated', 'donors_found', 'in_progress'].includes(currentFulfillment?.status) && (
                   <button
                     onClick={() => setShowCancelDialog(true)}
-                    className="bg-red-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-red-700"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium border-2 border-white hover:bg-blue-700 transition-colors"
                   >
                     Batalkan
                   </button>
                 )}
               </div>
             </div>
-          </div>
-        </div>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Content */}
             <div className="lg:col-span-2 space-y-6">
               {/* Progress */}
@@ -222,7 +220,7 @@ export default function FulfillmentDetailPage() {
 
               {/* Donor Search UI */}
               {showDonorSearch && eligibleDonorsFromSearch.length > 0 && (
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-6">
                     Pilih Jumlah Donor untuk Dikirim Notifikasi
                   </h3>
@@ -234,7 +232,7 @@ export default function FulfillmentDetailPage() {
                         Jumlah Donor: <span className="text-2xl font-bold text-red-600">{selectedDonorCount}</span>
                       </label>
                       <span className="text-sm text-gray-500">
-                        dari {eligibleDonorsFromSearch.length} donor
+                        dari {eligibleDonorsFromSearch.length} donor tersedia
                       </span>
                     </div>
                     <input
@@ -242,9 +240,17 @@ export default function FulfillmentDetailPage() {
                       min="1"
                       max={eligibleDonorsFromSearch.length}
                       value={selectedDonorCount}
-                      onChange={(e) => setSelectedDonorCount(parseInt(e.target.value))}
+                      onChange={(e) => {
+                        const newCount = parseInt(e.target.value);
+                        console.log('Slider changed to:', newCount, 'Max:', eligibleDonorsFromSearch.length);
+                        setSelectedDonorCount(newCount);
+                      }}
                       className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600"
                     />
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>1</span>
+                      <span>{eligibleDonorsFromSearch.length}</span>
+                    </div>
                   </div>
 
                   {/* Preview of selected donors */}
@@ -253,18 +259,24 @@ export default function FulfillmentDetailPage() {
                       <strong>Preview {selectedDonorCount} donor terdekat:</strong>
                     </p>
                     <div className="space-y-2">
-                      {eligibleDonorsFromSearch.slice(0, selectedDonorCount).map((donor, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
-                          <span className="text-sm text-gray-700">
-                            {idx + 1}. Donor {donor.donor_id.substring(0, 8)}...
-                          </span>
-                          {donor.distance_km && (
-                            <span className="text-xs text-gray-500">
-                              {donor.distance_km.toFixed(1)} km
+                      {eligibleDonorsFromSearch.slice(0, selectedDonorCount).map((donor, idx) => {
+                        const donorName = donor.full_name || donor.name || `Donor ${donor.donor_id.substring(0, 8)}...`;
+                        console.log(`Donor ${idx}:`, donor); // Debug untuk cek structure
+                        return (
+                          <div key={idx} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
+                            <span className="text-sm text-gray-700">
+                              {idx + 1}. {donorName}
                             </span>
-                          )}
-                        </div>
-                      ))}
+                            {donor.distance_km !== undefined && donor.distance_km !== null ? (
+                              <span className="text-xs text-gray-500">
+                                {donor.distance_km.toFixed(1)} km
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-400">-</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
@@ -292,7 +304,7 @@ export default function FulfillmentDetailPage() {
 
               {/* Confirmations - hanya tampilkan yang sudah dikirim notif */}
               {confirmations.filter(c => c.status !== 'pending_notification').length > 0 && (
-                <div className="bg-white rounded-lg shadow p-6">
+                <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
                     Konfirmasi Pendonor ({confirmations.filter(c => c.status !== 'pending_notification').length})
                   </h3>
@@ -339,7 +351,7 @@ export default function FulfillmentDetailPage() {
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Details Card */}
-              <div className="bg-white rounded-lg shadow p-6">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Detail Permintaan</h3>
                 <dl className="space-y-3 text-sm">
                   {currentFulfillment && (

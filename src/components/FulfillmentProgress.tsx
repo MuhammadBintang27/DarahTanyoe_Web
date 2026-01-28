@@ -56,7 +56,7 @@ export default function FulfillmentProgress({
   };
 
   return (
-    <div className={`bg-white rounded-lg shadow p-6 ${className}`}>
+    <div className={`bg-white border border-gray-200 rounded-lg shadow-sm p-6 ${className}`}>
       {/* Status Badge */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900">Progress Pemenuhan</h3>

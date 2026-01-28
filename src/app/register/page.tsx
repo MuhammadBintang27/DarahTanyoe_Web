@@ -168,21 +168,19 @@ const RegisterPage = () => {
       </div>
 
       {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 h-full flex flex-col items-center justify-center gap-4 bg-black/10 text-primary px-8 overflow-y-auto py-8">
+      <div className="w-full lg:w-1/2 h-full flex flex-col items-center justify-start gap-4 bg-black/10 text-primary px-8 lg:overflow-y-auto py-8">
         {/* Header */}
         <div className="text-center mb-4">
           <h2 className="font-bold text-5xl mb-2">Daftar</h2>
           <p className="font-light text-primary/50">
             Registrasi untuk Rumah Sakit dan PMI
           </p>
-          <p className="text-sm text-primary/60 mt-2">
-            *Pendonor silakan gunakan aplikasi mobile dengan login OTP WhatsApp
-          </p>
+       
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6 w-3/4 max-w-md">
-          <div className="flex flex-col gap-2 w-full">
+        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 w-3/4 max-w-2xl">
+          <div className="col-span-2 flex flex-col gap-2 w-full">
             <label htmlFor="institution_type" className="font-bold">
               Tipe Institusi <span className="text-red-500">*</span>
             </label>
@@ -190,7 +188,7 @@ const RegisterPage = () => {
               id="institution_type"
               value={formData.institution_type}
               onChange={handleInputChange}
-              className="shadow-lg h-14 border border-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
+              className="shadow-lg h-12 border border-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
               required
             >
               <option value="">Pilih Tipe Institusi</option>
@@ -214,8 +212,8 @@ const RegisterPage = () => {
               type="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="contoh@email.com"
-              className="shadow-lg h-14 border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
+              placeholder="email@example.com"
+              className="shadow-lg h-12 border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
               required
             />
             {errors.email && (
@@ -233,7 +231,7 @@ const RegisterPage = () => {
               value={formData.password}
               onChange={handleInputChange}
               placeholder="Minimal 6 karakter"
-              className="shadow-lg h-14 border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
+              className="shadow-lg h-12 border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
               required
             />
             {errors.password && (
@@ -251,7 +249,7 @@ const RegisterPage = () => {
               value={formData.institution_name}
               onChange={handleInputChange}
               placeholder="Nama institusi lengkap"
-              className="shadow-lg h-14 border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
+              className="shadow-lg h-12 border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
               required
             />
             {errors.institution_name && (
@@ -269,43 +267,37 @@ const RegisterPage = () => {
               value={formData.phone_number || ""}
               onChange={handleInputChange}
               placeholder="08xxxxxxxxxx (opsional)"
-              className="shadow-lg h-14 border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
+              className="shadow-lg h-12 border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
             />
           </div>
 
-          <div className="flex flex-col gap-2 w-full">
+          <div className="col-span-2 flex flex-col gap-2 w-full">
             <label htmlFor="address" className="font-bold">
-              Alamat Lengkap <span className="text-red-500">*</span>
-            </label>
-            <textarea
-              id="address"
-              value={formData.address}
-              onChange={handleInputChange}
-              placeholder="Masukkan alamat lengkap institusi"
-              rows={3}
-              className="shadow-lg border border-black/20 placeholder:text-black/20 bg-white backdrop-blur rounded-xl px-4 py-3 focus:outline-none text-black/70 resize-none"
-              required
-            />
-            {errors.address && (
-              <span className="text-red-500 text-sm">{errors.address}</span>
-            )}
-          </div>
-
-          {/* Location Picker */}
-          <div className="flex flex-col gap-2 w-full">
-            <label className="font-bold">
-              Titik Lokasi <span className="text-red-500">*</span>
+              Pilih Titik Lokasi & Alamat <span className="text-red-500">*</span>
             </label>
             <p className="text-sm text-primary/60 mb-2">
-              Pilih titik lokasi persis institusi Anda di peta untuk mempermudah pencarian donor terdekat
+              Pilih titik lokasi di peta, alamat akan otomatis terisi dari lokasi yang Anda pilih
             </p>
             <LocationPicker
               onLocationSelect={handleLocationSelect}
               initialLocation={location || undefined}
               defaultAddress={formData.address}
             />
+            <label htmlFor="address" className="font-bold mt-4">
+              Alamat Terisi
+            </label>
+            <textarea
+              id="address"
+              value={formData.address}
+              readOnly
+              placeholder="Alamat akan otomatis terisi setelah Anda memilih titik lokasi"
+              className="shadow-lg border border-black/20 placeholder:text-black/20 bg-white/50 backdrop-blur rounded-xl px-4 py-3 focus:outline-none text-black/70 resize-none min-h-20"
+            />
             {errors.location && (
               <span className="text-red-500 text-sm">{errors.location}</span>
+            )}
+            {errors.address && (
+              <span className="text-red-500 text-sm">{errors.address}</span>
             )}
           </div>
 
@@ -313,13 +305,13 @@ const RegisterPage = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="cursor-pointer bg-primary text-white mt-4 shadow-lg px-12 py-4 rounded-xl font-bold text-xl hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="col-span-2 cursor-pointer bg-primary text-white mt-2 shadow-lg px-12 py-3 rounded-xl font-bold text-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? "Mendaftar..." : "Daftar Sekarang"}
           </button>
 
           {/* Login Link */}
-          <p className="text-center text-primary/70 mt-4">
+          <p className="col-span-2 text-center text-primary/70 mt-2">
             Sudah punya akun?{" "}
             <Link 
               href="/login" 
