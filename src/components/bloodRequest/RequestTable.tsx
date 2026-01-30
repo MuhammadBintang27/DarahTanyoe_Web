@@ -2,6 +2,8 @@ import { CheckCircle, XCircle, Clock, Package, AlertCircle, Calendar, Megaphone 
 import { BloodRequest } from '@/types/bloodRequest';
 import { StatusBadge } from './StatusBadge';
 import { formatDate, padId } from '@/utils/formatters';
+import { useAllocation } from '@/hooks/useAllocation';
+import { useEffect, useState } from 'react';
 
 interface RequestTableProps {
   data: BloodRequest[];
@@ -31,12 +33,70 @@ export const RequestTable: React.FC<RequestTableProps> = ({
   onCreateCampaign,
 }) => {
   const startIndex = (currentPage - 1) * itemsPerPage;
+  const [allocationCache, setAllocationCache] = useState<Record<string, any>>({});
 
   // Helper function to check if blood stock is sufficient
   const isStockSufficient = (bloodType: string, quantity: number): boolean => {
     const stock = bloodStock.find(s => s.blood_type === bloodType);
     return stock ? stock.quantity >= quantity : false;
   };
+
+  // NEW: Helper to check if allocation + free stock is sufficient (for Opsi 2)
+  // Shows "Buat Jadwal Pickup" if we have enough blood from ANY source (allocations OR free stock)
+  // Shows "Buat Kampanye Pemenuhan" only if we DON'T have enough from available sources
+  const isAllocationSufficient = (requestId: string, quantity: number): boolean => {
+    const data = allocationCache[requestId];
+    if (!data) return false;
+    
+    // From /with-free-stock endpoint:
+    // data.summary = { total_available: X, from_allocation: Y, from_free_stock: Z }
+    if (data.summary?.total_available !== undefined) {
+      return data.summary.total_available >= quantity;
+    }
+    
+    // Fallback for old /available endpoint response
+    if (data.summary?.total_available !== undefined) {
+      return data.summary.total_available >= quantity;
+    }
+    
+    return false;
+  };
+
+  // Fetch allocations + free stock for all requests
+  useEffect(() => {
+    const fetchAllocations = async () => {
+      const newCache: Record<string, any> = {};
+      
+      for (const request of data) {
+        if (['approved', 'in_fulfillment', 'ready'].includes(request.status)) {
+          try {
+            // Fetch BOTH allocations and free stock for complete picture
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_API_URL}/allocation/request/${request.id}/with-free-stock`,
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+                },
+              }
+            );
+            
+            if (response.ok) {
+              const jsonData = await response.json();
+              newCache[request.id] = jsonData.data || jsonData;
+            }
+          } catch (error) {
+            console.error(`Failed to fetch allocations for ${request.id}:`, error);
+          }
+        }
+      }
+      
+      setAllocationCache(newCache);
+    };
+
+    if (data.length > 0 && userRole === 'pmi') {
+      fetchAllocations();
+    }
+  }, [data, userRole]);
 
   if (data.length === 0) {
     return (
@@ -58,7 +118,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
           <thead className="bg-gray-50 border-b-2 border-gray-200">
             <tr>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                ID
+                No.
               </th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Nama Pasien
@@ -79,9 +139,14 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                 Status
               </th>
               {userRole === 'pmi' && (
-                <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                  Aksi
-                </th>
+                <>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Alokasi Darah
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                    Aksi
+                  </th>
+                </>
               )}
             </tr>
           </thead>
@@ -102,7 +167,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                   {row.blood_type}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {row.blood_bags_fulfilled || 0}/{row.quantity}
+                {row.quantity}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                   {formatDate(row.created_at)}
@@ -113,6 +178,44 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap">
                   <StatusBadge status={row.status} />
                 </td>
+                {userRole === 'pmi' && (
+                  <>
+                    {/* NEW: Allocation Status Column */}
+                    <td className="px-6 py-4 text-sm">
+                      {['approved', 'in_fulfillment', 'ready'].includes(row.status) ? (
+                        <div className="space-y-1">
+                          {allocationCache[row.id] ? (
+                            <>
+                              <div className="text-xs font-semibold text-gray-700">
+                                {allocationCache[row.id].summary?.total_from_allocation || 0}/{row.quantity} kantong
+                              </div>
+                              {allocationCache[row.id].summary && (
+                                <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                  <div
+                                    className={`h-1.5 rounded-full ${
+                                      allocationCache[row.id].summary.total_from_allocation >= row.quantity
+                                        ? 'bg-green-500'
+                                        : 'bg-yellow-500'
+                                    }`}
+                                    style={{
+                                      width: `${
+                                        Math.min((allocationCache[row.id].summary.total_from_allocation / row.quantity) * 100, 100)
+                                      }%`,
+                                    }}
+                                  />
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            <span className="text-xs text-gray-500">Loading...</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-500">-</span>
+                      )}
+                    </td>
+                  </>
+                )}
                 {userRole === 'pmi' && (
                   <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
                     {row.status === 'pending' && onApprove && onReject && (
@@ -137,7 +240,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                     )}
                     {row.status === 'approved' && (
                       <div className="flex gap-2">
-                        {isStockSufficient(row.blood_type, row.quantity) ? (
+                        {isAllocationSufficient(row.id, row.quantity) ? (
                           <button
                             onClick={() => onCreatePickup?.(row.id)}
                             disabled={loading[row.id]}
@@ -160,14 +263,16 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                     )}
                     {row.status === 'ready' && (
                       <div className="flex gap-2">
-                        <button
-                          onClick={() => onCreatePickup?.(row.id)}
-                          disabled={loading[row.id]}
-                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
-                        >
-                          <Calendar size={14} />
-                          Buat Jadwal Pickup
-                        </button>
+                        {isAllocationSufficient(row.id, row.quantity) && (
+                          <button
+                            onClick={() => onCreatePickup?.(row.id)}
+                            disabled={loading[row.id]}
+                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
+                          >
+                            <Calendar size={14} />
+                            Buat Jadwal Pickup
+                          </button>
+                        )}
                       </div>
                     )}
                     {row.status === 'in_fulfillment' && (

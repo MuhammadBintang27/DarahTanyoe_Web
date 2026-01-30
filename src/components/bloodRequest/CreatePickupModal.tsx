@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, Calendar, Clock, Info } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { X, Calendar, Clock, Info, AlertCircle } from "lucide-react";
+import { AllocationCard } from "@/components/allocation/AllocationCard";
+import { useAllocation, AllocationData, FreeStockData } from "@/hooks/useAllocation";
 
 interface CreatePickupModalProps {
   isOpen: boolean;
@@ -12,7 +14,13 @@ interface CreatePickupModalProps {
   quantity: number;
   hospitalName: string;
   onClose: () => void;
-  onSubmit: (data: { pickupDate: string; pickupTime: string; notes?: string }) => void;
+  onSubmit: (data: { 
+    pickupDate: string; 
+    pickupTime: string; 
+    notes?: string;
+    allocations?: Array<{ allocation_id: string; quantity_picked_up: number }>;
+    free_stock?: Array<{ stock_id: string; quantity_picked_up: number }>;
+  }) => void;
 }
 
 export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
@@ -29,6 +37,102 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
   const [pickupDate, setPickupDate] = useState("");
   const [pickupTime, setPickupTime] = useState("");
   const [notes, setNotes] = useState("");
+  const [allocationQty, setAllocationQty] = useState<Record<string, number>>({});
+  const [freeStockQty, setFreeStockQty] = useState<Record<string, number>>({});
+  const [useFreeStock, setUseFreeStock] = useState(false); // Track if using free stock
+
+  // Fetch allocations WITH free stock options
+  const { 
+    allocations, 
+    freeStock,
+    summary, 
+    loading: allocLoading, 
+    getBloodWithFreeStock 
+  } = useAllocation(requestId);
+
+  useEffect(() => {
+    if (isOpen && requestId) {
+      getBloodWithFreeStock(requestId);
+    }
+  }, [isOpen, requestId, getBloodWithFreeStock]);
+
+  // Initialize allocation quantities - AUTO FILL jika sudah cukup
+  useEffect(() => {
+    const initialQty: Record<string, number> = {};
+    const initialFreeStockQty: Record<string, number> = {};
+    let totalAvailable = 0;
+    
+    (allocations || []).forEach((alloc) => {
+      if (alloc && alloc.allocation_id) {
+        const pending = alloc.quantity_allocated - (alloc.quantity_picked_up || 0);
+        initialQty[alloc.allocation_id] = pending;
+        totalAvailable += pending;
+      }
+    });
+
+    // IMPORTANT: Only initialize free stock to 0 by default - don't auto-fill quantities
+    (freeStock || []).forEach((stock) => {
+      if (stock && stock.stock_id) {
+        initialFreeStockQty[stock.stock_id] = 0;
+      }
+    });
+    
+    // AUTO-FILL: Jika total allocation == quantity needed, langsung set semua allocation
+    if (totalAvailable === quantity && allocations.length > 0) {
+      setAllocationQty(initialQty);
+      setFreeStockQty(initialFreeStockQty); // Keep all at 0 - not needed!
+      setUseFreeStock(false); // Tidak perlu free stock
+      // Optionally auto-fill date to today
+      const today = new Date().toISOString().split("T")[0];
+      setPickupDate(today);
+    }
+    // AUTO-FILL: Jika allocation < quantity tapi allocation + free_stock >= quantity
+    else if (totalAvailable < quantity && (totalAvailable + (summary?.total_from_free_stock || 0)) >= quantity) {
+      setAllocationQty(initialQty); // Ambil semua allocation
+      // Auto-calculate free stock needed
+      const freeStockNeeded = quantity - totalAvailable;
+      let remaining = freeStockNeeded;
+      freeStock.forEach((stock) => {
+        if (remaining > 0) {
+          const take = Math.min(stock.quantity, remaining);
+          initialFreeStockQty[stock.stock_id] = take;
+          remaining -= take;
+        } else {
+          initialFreeStockQty[stock.stock_id] = 0;
+        }
+      });
+      setFreeStockQty(initialFreeStockQty);
+      setUseFreeStock(true);
+      // Optionally auto-fill date to today
+      const today = new Date().toISOString().split("T")[0];
+      setPickupDate(today);
+    }
+    // AUTO-FILL: Jika allocation kosong (0) tapi free stock cukup
+    else if (allocations.length === 0 && freeStock.length > 0) {
+      // Keep allocation empty
+      setAllocationQty(initialQty); // All allocation at 0
+      // Auto-calculate free stock needed
+      const freeStockNeeded = quantity;
+      let remaining = freeStockNeeded;
+      freeStock.forEach((stock) => {
+        if (remaining > 0) {
+          const take = Math.min(stock.quantity, remaining);
+          initialFreeStockQty[stock.stock_id] = take;
+          remaining -= take;
+        } else {
+          initialFreeStockQty[stock.stock_id] = 0;
+        }
+      });
+      setFreeStockQty(initialFreeStockQty);
+      setUseFreeStock(true);
+      // Optionally auto-fill date to today
+      const today = new Date().toISOString().split("T")[0];
+      setPickupDate(today);
+    } else {
+      setAllocationQty(initialQty);
+      setFreeStockQty(initialFreeStockQty); // All at 0
+    }
+  }, [allocations, freeStock, quantity, summary]);
 
   // Get minimum date (today)
   const today = new Date().toISOString().split("T")[0];
@@ -40,7 +144,29 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
       return;
     }
 
-    onSubmit({ pickupDate, pickupTime, notes });
+    // Prepare allocation data for submission
+    const allocationData = (allocations || [])
+      .filter((alloc) => alloc && alloc.allocation_id && allocationQty[alloc.allocation_id] > 0)
+      .map((alloc) => ({
+        allocation_id: alloc.allocation_id,
+        quantity_picked_up: allocationQty[alloc.allocation_id],
+      }));
+
+    // Prepare free stock data for submission
+    const freeStockData = (freeStock || [])
+      .filter((stock) => stock && stock.stock_id && freeStockQty[stock.stock_id] > 0)
+      .map((stock) => ({
+        stock_id: stock.stock_id,
+        quantity_picked_up: freeStockQty[stock.stock_id],
+      }));
+
+    onSubmit({ 
+      pickupDate, 
+      pickupTime, 
+      notes,
+      allocations: allocationData,
+      free_stock: freeStockData,
+    });
   };
 
   const handleClose = () => {
@@ -52,11 +178,16 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
     }
   };
 
+  const totalAllocationSelected = Object.values(allocationQty).reduce((a, b) => a + b, 0);
+  const totalFreeStockSelected = Object.values(freeStockQty).reduce((a, b) => a + b, 0);
+  const totalSelected = totalAllocationSelected + totalFreeStockSelected;
+  const canSubmit = totalSelected >= quantity && pickupDate && pickupTime;
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-gray-800">Jadwalkan Pickup Darah</h3>
@@ -75,10 +206,10 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
             <Info className="text-blue-500 flex-shrink-0 mt-0.5" size={20} />
             <div>
               <p className="text-blue-900 text-sm font-medium">
-                Stok darah akan dikurangi otomatis
+                Darah tersedia dari allocation & free stock
               </p>
               <p className="text-blue-700 text-xs mt-1">
-                Sistem akan menggunakan metode FIFO (First In First Out) berdasarkan tanggal kadaluarsa
+                Kedua sumber akan diambil secara bersamaan untuk melengkapi kebutuhan darah.
               </p>
             </div>
           </div>
@@ -111,8 +242,150 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+          {allocLoading ? (
+            <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600 text-sm">
+              ⏳ Loading data allocation & free stock...
+            </div>
+          ) : allocations.length === 0 && freeStock.length === 0 ? (
+            <div className="p-4 bg-red-50 rounded-lg border border-red-200 text-center">
+              <p className="text-red-700 text-sm font-semibold">Tidak ada darah tersedia</p>
+              <p className="text-red-600 text-xs mt-1">Mohon tunggu hingga donor selesai mendonor</p>
+            </div>
+          ) : (
+            <>
+              {/* ALLOCATIONS SECTION */}
+              {allocations.length > 0 && (
+                <div className="space-y-3 border-b pb-5">
+                  <h4 className="text-sm font-semibold text-gray-700">📦 Allocation (Darah Tersedia)</h4>
+                  
+                  {allocations.length > 0 && summary && summary.total_from_allocation === quantity && (
+                    <div className="p-3 bg-green-50 border border-green-300 rounded-lg">
+                      <p className="text-green-700 text-sm font-semibold">
+                        ✅ Allocation sudah cukup!
+                      </p>
+                      <p className="text-green-600 text-xs mt-1">
+                        Hanya perlu allocation, tidak memerlukan free stock.
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-3 max-h-[250px] overflow-y-auto bg-gray-50 p-3 rounded-lg">
+                    {(allocations || []).map((alloc) => (
+                      alloc && alloc.allocation_id ? (
+                        <div key={alloc.allocation_id} className="bg-white p-3 rounded-lg border border-gray-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-800">{alloc.batch_number}</p>
+                            <p className="text-xs text-gray-600 mt-1">Pasien: {alloc.fulfillment_patient || 'N/A'}</p>
+                            <p className="text-xs text-gray-600">Kadaluarsa: {alloc.expiry_date}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-primary">{allocationQty[alloc.allocation_id] || 0}</p>
+                            <p className="text-xs text-gray-500">dari {alloc.quantity_pending || alloc.quantity_allocated} kantong</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                          <div
+                            className="bg-green-500 h-full transition-all"
+                            style={{
+                              width: `${((allocationQty[alloc.allocation_id] || 0) / (alloc.quantity_pending || alloc.quantity_allocated)) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                      ) : null
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* FREE STOCK SECTION */}
+              {(freeStock || []).length > 0 && totalAllocationSelected < quantity && (
+                <div className="space-y-3 border-b pb-5">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-gray-700">📋 Free Stock (Stok Tambahan)</h4>
+                    <AlertCircle size={16} className="text-amber-500" />
+                  </div>
+                  
+                  {useFreeStock && (
+                    <div className="p-3 bg-amber-50 border border-amber-300 rounded-lg">
+                      <p className="text-amber-700 text-sm font-semibold">
+                        ⚠️ Free stock akan diambil untuk melengkapi kebutuhan
+                      </p>
+                      <p className="text-amber-600 text-xs mt-1">
+                        Masih dibutuhkan: {quantity - totalAllocationSelected} kantong
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="space-y-3 max-h-[250px] overflow-y-auto bg-yellow-50 p-3 rounded-lg">
+                    {(freeStock || []).map((stock) => (
+                      stock && stock.stock_id ? (
+                        <div key={stock.stock_id} className="bg-white p-3 rounded-lg border border-yellow-200">
+                        <div className="flex justify-between items-start mb-2">
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-gray-800">{stock.batch_number}</p>
+                            <p className="text-xs text-gray-600 mt-1">Kadaluarsa: {stock.expiry_date}</p>
+                            <p className="text-xs text-amber-600 font-semibold mt-1">{stock.warning}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold text-amber-600">{freeStockQty[stock.stock_id] || 0}</p>
+                            <p className="text-xs text-gray-500">dari {stock.quantity} kantong</p>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 h-2 rounded-full overflow-hidden">
+                          <div
+                            className="bg-amber-500 h-full transition-all"
+                            style={{
+                              width: `${((freeStockQty[stock.stock_id] || 0) / stock.quantity) * 100}%`,
+                            }}
+                          />
+                        </div>
+                      </div>
+                      ) : null
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Summary Section */}
+              {summary && (
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="grid grid-cols-4 gap-2 text-sm mb-3">
+                    <div>
+                      <p className="text-blue-600 text-xs">Allocation</p>
+                      <p className="font-bold text-blue-900">{totalAllocationSelected}</p>
+                    </div>
+                    <div>
+                      <p className="text-amber-600 text-xs">Free Stock</p>
+                      <p className="font-bold text-amber-900">{totalFreeStockSelected}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-600 text-xs">Total</p>
+                      <p className="font-bold text-blue-900">{totalSelected}</p>
+                    </div>
+                    <div>
+                      <p className="text-blue-600 text-xs">Dibutuhkan</p>
+                      <p className="font-bold text-blue-900">{quantity}</p>
+                    </div>
+                  </div>
+                  {totalSelected < quantity && (
+                    <p className="text-sm text-yellow-700 font-semibold">
+                      ⚠️ Masih kurang {quantity - totalSelected} kantong
+                    </p>
+                  )}
+                  {totalSelected >= quantity && (
+                    <p className="text-sm text-green-700 font-semibold">
+                      ✓ Sudah cukup untuk melengkapi kebutuhan
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
           {/* Pickup Date */}
-          <div>
+          <div className="border-t pt-5">
             <label className="block text-sm font-semibold text-gray-700 mb-2">
               Tanggal Pickup <span className="text-red-500">*</span>
             </label>
@@ -175,7 +448,7 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading || !pickupDate || !pickupTime}
+              disabled={loading || !canSubmit}
               className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-lg transition-all disabled:opacity-50 disabled:from-gray-300 disabled:to-gray-300 shadow-md"
             >
               {loading ? "Membuat Jadwal..." : "Buat Jadwal Pickup"}

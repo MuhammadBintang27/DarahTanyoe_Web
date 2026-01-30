@@ -17,6 +17,7 @@ import { CreatePickupModal } from "@/components/bloodRequest/CreatePickupModal";
 import { Pagination } from "@/components/common/Pagination";
 
 import { useBloodRequests, usePartners, useBloodStock } from "@/hooks/useBloodRequests";
+import { useAllocation } from "@/hooks/useAllocation";
 import { FilterState, CreateRequestForm, BloodRequest } from "@/types/bloodRequest";
 import { formatDateToAPI } from "@/utils/formatters";
 import toast from "react-hot-toast";
@@ -47,6 +48,7 @@ const Permintaan: React.FC = () => {
   const [showPickupModal, setShowPickupModal] = useState<BloodRequest | null>(null);
   const [showCampaignModal, setShowCampaignModal] = useState<BloodRequest | null>(null);
   const [selectedRequest, setSelectedRequest] = useState<BloodRequest | null>(null);
+  const [requestAllocations, setRequestAllocations] = useState<Record<string, any>>({}); // Cache allocations
 
   // Filter data
   const filteredData = data.filter((row) => {
@@ -147,30 +149,66 @@ const Permintaan: React.FC = () => {
     }
   };
 
-  const handleSubmitPickup = async (pickupData: { pickupDate: string; pickupTime: string; notes?: string }) => {
+  const handleSubmitPickup = async (pickupData: { 
+    pickupDate: string; 
+    pickupTime: string; 
+    notes?: string;
+    allocations?: Array<{ allocation_id: string; quantity_picked_up: number }>;
+    free_stock?: Array<{ stock_id: string; quantity_picked_up: number }>;
+  }) => {
     if (!showPickupModal) return;
 
     try {
       setLoading((prev) => ({ ...prev, [`pickup_${showPickupModal.id}`]: true }));
 
       const token = localStorage.getItem("authToken");
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL}/pickup-schedules`,
-        {
-          requestId: showPickupModal.id,
-          pickupDate: pickupData.pickupDate,
-          pickupTime: pickupData.pickupTime,
-          notes: pickupData.notes,
-          pmiId: user?.id
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+      
+      // Check if there's free_stock to handle
+      const hasFreeStock = (pickupData.free_stock?.length ?? 0) > 0;
+      const hasAllocations = (pickupData.allocations?.length ?? 0) > 0;
+      
+      console.log('🔍 handleSubmitPickup - Form data received:', {
+        hasFreeStock,
+        hasAllocations,
+        allocations_count: pickupData.allocations?.length ?? 0,
+        free_stock_count: pickupData.free_stock?.length ?? 0,
+        allocations_detail: pickupData.allocations,
+        free_stock_detail: pickupData.free_stock
+      });
+      
+      // Use unified endpoint for both allocation-only and combined pickups
+      // Accept EITHER allocations OR free_stock (or both)
+      if (hasAllocations || hasFreeStock) {
+        console.log('📦 Creating pickup via unified endpoint (works for both allocation-only and combined sources)');
+        
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_API_URL}/allocation/request/${showPickupModal.id}/confirm-with-free-stock`,
+          {
+            pickupDate: pickupData.pickupDate,
+            pickupTime: pickupData.pickupTime,
+            allocations: pickupData.allocations || [],
+            free_stock: pickupData.free_stock || []  // Empty array if no free stock
           },
-        }
-      );
-
-      toast.success(response.data.message || "Jadwal pickup berhasil dibuat");
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        
+        const allocCount = pickupData.allocations?.length ?? 0;
+        const stockCount = pickupData.free_stock?.length ?? 0;
+        const message = stockCount > 0 && allocCount > 0
+          ? `Jadwal pickup berhasil dibuat! Darah dari ${allocCount} allocation + ${stockCount} free stock`
+          : stockCount > 0
+          ? `Jadwal pickup berhasil dibuat! Darah dari ${stockCount} free stock`
+          : `Jadwal pickup berhasil dibuat! Darah dari ${allocCount} allocation`;
+        
+        toast.success(response.data.message || message);
+      } else {
+        toast.error("Tidak ada allocation atau free stock yang dipilih");
+        return;
+      }
       
       // Close modal immediately
       setShowPickupModal(null);
