@@ -19,7 +19,7 @@ export const Sidebar = () => {
     {
       name: "Dashboard",
       icon: () => <LayoutDashboard color="#9AA2AC" />,
-      url: "/",
+      url: "/pmi",
     },
     {
       name: "Permintaan",
@@ -53,7 +53,7 @@ export const Sidebar = () => {
     {
       name: "Dashboard",
       icon: () => <LayoutDashboard color="#9AA2AC" />,
-      url: "/",
+      url: "/hospital",
     },
     {
       name: "Permintaan",

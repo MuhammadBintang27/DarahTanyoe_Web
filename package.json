@@ -20,6 +20,7 @@
     "react-dom": "^19.0.0",
     "react-hot-toast": "^2.5.2",
     "react-leaflet": "^5.0.0",
+    "recharts": "^2.10.3",
     "sonner": "^1.7.4"
   },
   "devDependencies": {
