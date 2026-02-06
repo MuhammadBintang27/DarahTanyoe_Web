@@ -6,6 +6,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 import ProtectedRoute from "@/components/protectedRoute/protectedRoute";
+import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/context/authContext";
 
 interface BloodStock {
@@ -93,7 +94,8 @@ const InformasiPMI: React.FC = () => {
           <select
             value={selectedPMI}
             onChange={(e) => setSelectedPMI(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
+            disabled={loading}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 disabled:opacity-60 focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
           >
             {pmiList.map((pmi) => (
               <option key={pmi.id} value={pmi.id}>
@@ -104,9 +106,50 @@ const InformasiPMI: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <p className="text-gray-500">Memuat data...</p>
-          </div>
+          <>
+            {/* Skeleton: PMI Details */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <Skeleton className="h-5 w-40 mb-6" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="flex items-start gap-3">
+                    <Skeleton className="w-5 h-5 mt-1" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-3 w-16" />
+                      <Skeleton className="h-4 w-48" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Skeleton: Blood Stock */}
+            <div className="bg-white rounded-xl shadow-lg p-6">
+              <div className="flex items-center gap-2 mb-6">
+                <Skeleton className="w-6 h-6" />
+                <Skeleton className="h-5 w-56" />
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="p-6 rounded-xl border-2 border-gray-200">
+                    <div className="text-center space-y-2">
+                      <Skeleton className="h-6 w-12 mx-auto" />
+                      <Skeleton className="h-8 w-10 mx-auto" />
+                      <Skeleton className="h-3 w-14 mx-auto" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 flex flex-wrap gap-4 justify-center text-xs">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <Skeleton className="w-4 h-4" />
+                    <Skeleton className="h-3 w-24" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         ) : selectedPMIData ? (
           <>
             {/* PMI Details */}

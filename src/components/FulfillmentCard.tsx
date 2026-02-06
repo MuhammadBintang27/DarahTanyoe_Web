@@ -11,32 +11,20 @@ export default function FulfillmentCard({ fulfillment, onClick }: FulfillmentCar
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'fulfilled':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-50 text-green-700 border border-green-200';
       case 'in_progress':
-        return 'bg-blue-100 text-blue-800';
+      case 'searching_donors':
+      case 'initiated':
+        return 'bg-blue-50 text-blue-700 border border-blue-200';
       case 'donors_found':
-        return 'bg-yellow-100 text-yellow-800';
+      case 'partially_fulfilled':
+        return 'bg-yellow-50 text-yellow-700 border border-yellow-200';
       case 'failed':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-50 text-red-700 border border-red-200';
       case 'cancelled':
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-50 text-gray-700 border border-gray-200';
       default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case 'critical':
-        return 'text-red-600 bg-red-50';
-      case 'high':
-        return 'text-orange-600 bg-orange-50';
-      case 'medium':
-        return 'text-yellow-600 bg-yellow-50';
-      case 'low':
-        return 'text-green-600 bg-green-50';
-      default:
-        return 'text-gray-600 bg-gray-50';
+        return 'bg-gray-50 text-gray-700 border border-gray-200';
     }
   };
 
@@ -54,14 +42,45 @@ export default function FulfillmentCard({ fulfillment, onClick }: FulfillmentCar
     return labels[status] || status;
   };
 
-  const getUrgencyLabel = (urgency: string) => {
-    const labels: Record<string, string> = {
-      critical: 'Kritis',
-      high: 'Tinggi',
-      medium: 'Sedang',
-      low: 'Rendah',
-    };
-    return labels[urgency] || urgency;
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'fulfilled':
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+          </svg>
+        );
+      case 'in_progress':
+        return (
+          <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        );
+      case 'donors_found':
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+          </svg>
+        );
+      case 'failed':
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+          </svg>
+        );
+      case 'searching_donors':
+        return (
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        );
+      default:
+        return (
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+          </svg>
+        );
+    }
   };
 
   const progressPercentage = fulfillment.quantity_needed > 0
@@ -70,88 +89,100 @@ export default function FulfillmentCard({ fulfillment, onClick }: FulfillmentCar
 
   return (
     <div
-      className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200 p-5 cursor-pointer"
+      className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-gray-100 hover:border-red-200 group"
       onClick={onClick}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex-1">
-          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+      <div className="p-6">
+        {/* Header */}
+        <div className="mb-4">
+          <h3 className="text-xl font-bold text-gray-900 truncate mb-3" title={fulfillment.patient_name}>
             {fulfillment.patient_name}
           </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">ID: {fulfillment.id.slice(0, 8)}</span>
-            <span className="text-gray-300">•</span>
-            <span className={`text-xs font-medium px-2 py-0.5 rounded ${getUrgencyColor(fulfillment.urgency_level)}`}>
-              {getUrgencyLabel(fulfillment.urgency_level)}
+          <div className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded-lg ${getStatusColor(fulfillment.status)}`}>
+            <span>{getStatusLabel(fulfillment.status)}</span>
+          </div>
+        </div>
+
+        {/* Blood Type & Quantity */}
+        <div className="bg-gray-50 rounded-lg p-4 mb-4 border border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-gray-600 mb-1">Golongan Darah</p>
+              <p className="text-lg font-bold text-gray-900">{fulfillment.blood_type}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-medium text-gray-600 mb-1">Kebutuhan</p>
+              <p className="text-lg font-bold text-gray-900">
+                <span className={progressPercentage >= 100 ? 'text-green-600' : 'text-red-600'}>
+                  {fulfillment.quantity_collected}
+                </span>
+                <span className="text-gray-400 mx-1">/</span>
+                {fulfillment.quantity_needed}
+              </p>
+              <p className="text-xs text-gray-500">kantong</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Progress Bar - Enhanced */}
+        <div className="mb-5">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-xs font-semibold text-gray-700">Progress Pemenuhan</span>
+            <span className={`text-sm font-bold ${
+              progressPercentage >= 100 ? 'text-green-600' : 'text-blue-600'
+            }`}>
+              {progressPercentage}%
             </span>
           </div>
-        </div>
-        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(fulfillment.status)}`}>
-          {getStatusLabel(fulfillment.status)}
-        </span>
-      </div>
-
-      {/* Blood Type & Quantity */}
-      <div className="flex items-center gap-4 mb-4">
-        <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-            <span className="text-red-600 font-bold text-sm">{fulfillment.blood_type}</span>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">Golongan Darah</p>
-            <p className="text-sm font-semibold text-gray-900">{fulfillment.blood_type}</p>
+          <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner overflow-hidden">
+            <div
+              className={`h-3 rounded-full transition-all duration-500 ease-out ${
+                progressPercentage >= 100 
+                  ? 'bg-gradient-to-r from-green-400 to-green-600' 
+                  : 'bg-gradient-to-r from-blue-400 to-blue-600'
+              } shadow-md relative overflow-hidden`}
+              style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+            >
+              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+            </div>
           </div>
         </div>
-        <div className="border-l border-gray-200 pl-4">
-          <p className="text-xs text-gray-500">Kebutuhan</p>
-          <p className="text-sm font-semibold text-gray-900">
-            {fulfillment.quantity_collected} / {fulfillment.quantity_needed} kantong
-          </p>
-        </div>
-      </div>
 
-      {/* Progress Bar */}
-      <div className="mb-4">
-        <div className="flex justify-between text-xs text-gray-600 mb-1">
-          <span>Progress</span>
-          <span>{progressPercentage}%</span>
+        {/* Donor Stats - Enhanced */}
+        <div className="flex items-center gap-4 mb-4">
+          <div className="flex-1 bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Konfirmasi</p>
+                <p className="text-lg font-bold text-gray-900">{fulfillment.confirmed_donors || 0}</p>
+              </div>
+            </div>
+          </div>
+          <div className="flex-1 bg-white rounded-lg p-3 border border-gray-200 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div>
+                <p className="text-xs text-gray-500 font-medium">Selesai</p>
+                <p className="text-lg font-bold text-gray-900">{fulfillment.completed_donors || 0}</p>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div
-            className={`h-2 rounded-full transition-all duration-300 ${
-              progressPercentage >= 100 ? 'bg-green-500' : 'bg-blue-500'
-            }`}
-            style={{ width: `${Math.min(progressPercentage, 100)}%` }}
-          />
-        </div>
-      </div>
 
-      {/* Donor Stats */}
-      <div className="flex items-center gap-4 text-sm text-gray-600">
-        <div className="flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        {/* Date - Enhanced */}
+        <div className="flex items-center gap-2 pt-4 border-t border-gray-200">
+          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <span>{fulfillment.confirmed_donors || 0} Konfirmasi</span>
+          <span className="text-xs text-gray-500 font-medium">
+            {new Date(fulfillment.created_at).toLocaleDateString('id-ID', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </span>
         </div>
-        <div className="flex items-center gap-1">
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span>{fulfillment.completed_donors || 0} Selesai</span>
-        </div>
-      </div>
-
-      {/* Date */}
-      <div className="mt-4 pt-4 border-t border-gray-200 text-xs text-gray-500">
-        Dibuat: {new Date(fulfillment.created_at).toLocaleDateString('id-ID', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })}
       </div>
     </div>
   );

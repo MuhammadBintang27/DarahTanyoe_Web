@@ -186,6 +186,7 @@ const Permintaan: React.FC = () => {
           {
             pickupDate: pickupData.pickupDate,
             pickupTime: pickupData.pickupTime,
+            notes: pickupData.notes,  // Tambahkan notes dari form
             allocations: pickupData.allocations || [],
             free_stock: pickupData.free_stock || []  // Empty array if no free stock
           },
@@ -387,7 +388,7 @@ const Permintaan: React.FC = () => {
 
             {/* Create Campaign Modal */}
             {showCampaignModal && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                 <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
                   <h3 className="text-xl font-bold text-gray-900 mb-4">
                     Buat Kampanye Pemenuhan

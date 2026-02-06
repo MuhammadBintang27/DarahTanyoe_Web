@@ -83,27 +83,44 @@ export const useHospitalDashboard = (): UseDashboardDataReturn => {
       setLoading(true);
       setError(null);
 
-      // Get all blood requests for this hospital
+      // Get all blood requests for this hospital (list for tables & local charts)
       const { data: requestsData } = await api.get(
         `/bloodReq/${user.id}`
       );
 
       const requests = Array.isArray(requestsData?.data) ? requestsData.data : [];
 
-      // Calculate metrics
-      const activeRequests = requests.filter(
-        (r: any) => ['pending', 'approved', 'in_fulfillment'].includes(r.status)
-      ).length;
+      // Fetch cached summary for faster metrics
+      let summaryCounts: Record<string, number> | null = null
+      let upcomingPickups = 0
+      try {
+        const { data: summaryResp } = await api.get(`/dashboard/rs/${user.id}/summary`)
+        summaryCounts = summaryResp?.data?.request_counts || null
+        upcomingPickups = summaryResp?.data?.upcoming_pickups || 0
+      } catch {
+        summaryCounts = null
+      }
 
-      const completedRequests = requests.filter((r: any) => r.status === 'completed').length;
+      // Calculate metrics (prefer summary when available)
+      const activeRequests = summaryCounts
+        ? ((summaryCounts['pending'] || 0) + (summaryCounts['approved'] || 0) + (summaryCounts['in_fulfillment'] || 0))
+        : requests.filter((r: any) => ['pending', 'approved', 'in_fulfillment'].includes(r.status)).length
+
+      const completedRequests = summaryCounts
+        ? (summaryCounts['completed'] || 0)
+        : requests.filter((r: any) => r.status === 'completed').length
       
-      const readyForPickup = requests.filter(
-        (r: any) => r.status === 'pickup_scheduled'
-      ).length;
+      const readyForPickup = summaryCounts
+        ? (summaryCounts['pickup_scheduled'] || 0)
+        : requests.filter((r: any) => r.status === 'pickup_scheduled').length
 
-      const fulfillmentRate = requests.length > 0
-        ? Math.round((completedRequests / requests.length) * 100)
-        : 0;
+      const totalRequests = summaryCounts
+        ? Object.values(summaryCounts).reduce((a,b)=>a+b,0)
+        : requests.length
+
+      const fulfillmentRate = totalRequests > 0
+        ? Math.round(((completedRequests) / totalRequests) * 100)
+        : 0
 
       // Build requests by blood type map
       const requestsMap: { [key: string]: number } = {};
@@ -228,7 +245,7 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
       setLoading(true);
       setError(null);
 
-      // Get blood stock
+      // Get blood stock (detail listing)
       const { data: stockData } = await api.get(
         `/blood-stock/${user.id}`
       );
@@ -272,7 +289,7 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
         }))
         .slice(0, 5); // Top 5 low stock items
 
-      // Get blood requests for this PMI (as partner)
+      // Get blood requests for this PMI (as partner) for list/chart
       let requestsData: any[] = [];
       try {
         const { data: reqResponse } = await api.get(
@@ -283,12 +300,23 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
         requestsData = [];
       }
 
-      // Hitung permintaan berjalan & selesai
-      const runningRequests = requestsData.filter(
-        (r: any) => ['pending', 'approved', 'in_fulfillment', 'pickup_scheduled'].includes(r.status)
-      ).length;
+      // Fetch cached summary for faster counts
+      let summaryCounts: Record<string, number> | null = null
+      try {
+        const { data: summaryResp } = await api.get(`/dashboard/pmi/${user.id}/summary`)
+        summaryCounts = summaryResp?.data?.request_counts || null
+      } catch {
+        summaryCounts = null
+      }
 
-      const completedRequests = requestsData.filter((r: any) => r.status === 'completed').length;
+      // Hitung permintaan berjalan & selesai (prefer summary when available)
+      const runningRequests = summaryCounts
+        ? ((summaryCounts['pending'] || 0) + (summaryCounts['approved'] || 0) + (summaryCounts['in_fulfillment'] || 0) + (summaryCounts['pickup_scheduled'] || 0))
+        : requestsData.filter((r: any) => ['pending', 'approved', 'in_fulfillment', 'pickup_scheduled'].includes(r.status)).length
+
+      const completedRequests = summaryCounts
+        ? (summaryCounts['completed'] || 0)
+        : requestsData.filter((r: any) => r.status === 'completed').length
 
       // Build requests by blood type map
       const requestsMap: { [key: string]: number } = {};
@@ -321,9 +349,13 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
       ).length;
 
       // Calculate fulfillment rate
-      const fulfillmentRate = requestsData.length > 0
-        ? Math.round((completedRequests / requestsData.length) * 100)
-        : 0;
+      const totalRequests = summaryCounts
+        ? Object.values(summaryCounts).reduce((a,b)=>a+b,0)
+        : requestsData.length
+
+      const fulfillmentRate = totalRequests > 0
+        ? Math.round((completedRequests / totalRequests) * 100)
+        : 0
 
       // Generate yearly trend data (last 12 months)
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

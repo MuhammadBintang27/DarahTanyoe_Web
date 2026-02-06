@@ -19,6 +19,8 @@ export default function FulfillmentProgress({
     switch (status) {
       case 'fulfilled':
         return 'bg-green-500';
+      case 'completed':
+        return 'bg-green-500';
       case 'in_progress':
         return 'bg-blue-500';
       case 'donors_found':
@@ -45,6 +47,8 @@ export default function FulfillmentProgress({
       case 'partially_fulfilled':
         return 'Sebagian Terpenuhi';
       case 'fulfilled':
+        return 'Terpenuhi';
+      case 'completed':
         return 'Terpenuhi';
       case 'failed':
         return 'Gagal';
@@ -89,22 +93,22 @@ export default function FulfillmentProgress({
       </div>
 
       {/* Donor Statistics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="text-center p-3 bg-blue-50 rounded-lg">
-          <p className="text-2xl font-bold text-blue-600">{stats.totalNotified}</p>
-          <p className="text-xs text-gray-600">Diberitahu</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
+          <p className="text-2xl font-bold text-gray-900">{stats.totalNotified}</p>
+          <p className="text-xs text-gray-600 mt-1 font-medium">Diberitahu</p>
         </div>
-        <div className="text-center p-3 bg-green-50 rounded-lg">
-          <p className="text-2xl font-bold text-green-600">{stats.confirmedCount}</p>
-          <p className="text-xs text-gray-600">Konfirmasi</p>
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
+          <p className="text-2xl font-bold text-gray-900">{stats.confirmedCount}</p>
+          <p className="text-xs text-gray-600 mt-1 font-medium">Konfirmasi</p>
         </div>
-        <div className="text-center p-3 bg-purple-50 rounded-lg">
-          <p className="text-2xl font-bold text-purple-600">{stats.completedCount}</p>
-          <p className="text-xs text-gray-600">Selesai</p>
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
+          <p className="text-2xl font-bold text-gray-900">{stats.completedCount}</p>
+          <p className="text-xs text-gray-600 mt-1 font-medium">Selesai</p>
         </div>
-        <div className="text-center p-3 bg-yellow-50 rounded-lg">
-          <p className="text-2xl font-bold text-yellow-600">{stats.pendingCount}</p>
-          <p className="text-xs text-gray-600">Menunggu</p>
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 text-center">
+          <p className="text-2xl font-bold text-gray-900">{stats.pendingCount}</p>
+          <p className="text-xs text-gray-600 mt-1 font-medium">Menunggu</p>
         </div>
       </div>
 

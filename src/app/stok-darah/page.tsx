@@ -6,6 +6,7 @@ import axios from "axios";
 import toast, { Toaster } from "react-hot-toast";
 
 import ProtectedRoute from "@/components/protectedRoute/protectedRoute";
+import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/context/authContext";
 
 interface BloodStock {
@@ -148,9 +149,39 @@ const StokDarah: React.FC = () => {
 
         {/* Stock Cards */}
         {loading ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <p className="text-gray-500">Memuat data stok...</p>
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="relative border-2 rounded-xl p-6 bg-white">
+                  <Skeleton className="absolute top-3 right-3 h-5 w-16 rounded-full" />
+                  <div className="text-center mb-4 space-y-2">
+                    <Skeleton className="mx-auto h-8 w-8" />
+                    <Skeleton className="mx-auto h-6 w-12" />
+                  </div>
+                  <div className="text-center mb-4 space-y-2">
+                    <Skeleton className="mx-auto h-8 w-14" />
+                    <Skeleton className="mx-auto h-3 w-16" />
+                  </div>
+                  <div className="flex gap-2">
+                    <Skeleton className="flex-1 h-10" />
+                    <Skeleton className="flex-1 h-10" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-6 mt-6">
+              <Skeleton className="h-5 w-52 mb-4" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Skeleton className="w-4 h-4 rounded-full" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {stocks.map((stock) => (
@@ -235,7 +266,7 @@ const StokDarah: React.FC = () => {
 
         {/* Adjustment Modal */}
         {showAdjustModal && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-xl font-bold text-gray-800">

@@ -123,22 +123,24 @@ export const PieChart: React.FC<PieChartProps> = ({ data, title, isLoading = fal
       ) : (
         <div className="w-full">
           <ResponsiveContainer width="100%" height={300}>
-            <RechartsPieChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+            <RechartsPieChart margin={{ top: 0, right: 0, bottom: 0, left: 0 }}>
               <Pie
                 data={chartData.filter(d => d.value > 0)} // Only show slices with data
                 cx="50%"
                 cy="50%"
                 labelLine={false}
                 label={renderCustomLabel}
-                outerRadius={90}
+                outerRadius={120}
                 fill="#8884d8"
                 dataKey="value"
                 animationBegin={0}
                 animationDuration={800}
               >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                ))}
+                {chartData
+                  .filter(d => d.value > 0)
+                  .map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
               </Pie>
 
               <Tooltip content={<CustomPieTooltip />} cursor={{ fill: 'rgba(0,0,0,0.05)' }} />
@@ -295,7 +297,7 @@ export const LineChart: React.FC<LineChartProps> = ({
       )}
 
       <p className="text-xs text-gray-500 mt-4">
-        💡 Hover ke data point untuk melihat detail permintaan per bulan
+        Arahkan kursor ke titik untuk melihat detail per bulan
       </p>
     </div>
   );

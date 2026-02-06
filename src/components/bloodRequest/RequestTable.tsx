@@ -276,9 +276,22 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                       </div>
                     )}
                     {row.status === 'in_fulfillment' && (
-                      <div className="flex items-center gap-2 text-blue-600">
-                        <Clock size={16} />
-                        <span className="text-xs font-medium">Sedang Dipenuhi</span>
+                      <div className="flex items-center gap-2">
+                        {isAllocationSufficient(row.id, row.quantity) ? (
+                          <button
+                            onClick={() => onCreatePickup?.(row.id)}
+                            disabled={loading[row.id]}
+                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
+                          >
+                            <Calendar size={14} />
+                            Buat Jadwal Pickup
+                          </button>
+                        ) : (
+                          <div className="flex items-center gap-2 text-blue-600">
+                            <Clock size={16} />
+                            <span className="text-xs font-medium">Sedang Dipenuhi</span>
+                          </div>
+                        )}
                       </div>
                     )}
                     {row.status === 'pickup_scheduled' && (

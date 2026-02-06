@@ -41,7 +41,7 @@ export default function RootLayout({
         <SidebarProvider>
           <NotifProvider>
             <FulfillmentProvider>
-              <body className={`${dmSans.className} antialiased bg-primary pr-8`}>
+              <body className={`${dmSans.className} antialiased bg-primary`}>
                 <Toaster position="top-right" richColors />
                 <RootLayoutWrapper>{children}</RootLayoutWrapper>
               </body>

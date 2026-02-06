@@ -121,7 +121,7 @@ export default function VerifikasiPage() {
       <div className="mb-6">
           <button
             onClick={() => router.push(`/pemenuhan/${fulfillmentId}`)}
-            className="text-white hover:text-white font-medium mb-4 flex items-center gap-2"
+            className="text-white hover:text-gray-200 font-medium mb-4 flex items-center gap-2 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -129,7 +129,7 @@ export default function VerifikasiPage() {
             Kembali
           </button>
           <h1 className="text-3xl font-bold text-white">Verifikasi Donor</h1>
-          <p className="mt-2 text-sm text-white">
+          <p className="mt-2 text-lg text-white font-semibold mb-6">
             Verifikasi kode donor dan proses donasi darah
           </p>
         </div>
@@ -141,39 +141,41 @@ export default function VerifikasiPage() {
           /* Donor Details & Completion Form */
           <div className="space-y-6">
             {/* Verified Donor Info */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-              <div className="flex items-center gap-2 mb-4">
-                <svg className="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path
-                    fillRule="evenodd"
-                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-                <h3 className="text-lg font-semibold text-green-900">Kode Terverifikasi</h3>
+            <div className="bg-white rounded-xl shadow-lg p-6 border-2 border-green-200">
+              <div className="flex items-center gap-2 mb-5">
+                <div className="w-8 h-8 bg-green-50 rounded-full flex items-center justify-center border border-green-200">
+                  <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Kode Terverifikasi</h3>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm text-green-700 mb-1">Nama Pendonor</p>
-                  <p className="font-semibold text-green-900">
+                  <p className="text-xs font-medium text-gray-600 mb-1">Nama Pendonor</p>
+                  <p className="font-semibold text-gray-900">
                     {verifiedDonor.confirmation?.donor?.full_name || verifiedDonor.donor?.full_name || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-700 mb-1">Nomor Telepon</p>
-                  <p className="font-semibold text-green-900">
+                  <p className="text-xs font-medium text-gray-600 mb-1">Nomor Telepon</p>
+                  <p className="font-semibold text-gray-900">
                     {verifiedDonor.confirmation?.donor?.phone_number || verifiedDonor.donor?.phone_number || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-700 mb-1">Golongan Darah</p>
-                  <p className="font-semibold text-green-900">
+                  <p className="text-xs font-medium text-gray-600 mb-1">Golongan Darah</p>
+                  <p className="font-semibold text-gray-900">
                     {verifiedDonor.confirmation?.donor?.blood_type || verifiedDonor.donor?.blood_type || 'N/A'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-sm text-green-700 mb-1">Kode Unik</p>
-                  <p className="font-semibold text-green-900 font-mono">
+                  <p className="text-xs font-medium text-gray-600 mb-1">Kode Unik</p>
+                  <p className="font-semibold text-gray-900 font-mono">
                     {verifiedDonor.confirmation?.unique_code || verifiedDonor.unique_code || 'N/A'}
                   </p>
                 </div>
@@ -182,15 +184,15 @@ export default function VerifikasiPage() {
               
               <button
                 onClick={resetVerification}
-                className="mt-4 text-sm text-green-700 hover:text-green-800 font-medium"
+                className="mt-5 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
               >
                 Verifikasi Kode Lain
               </button>
             </div>
 
             {/* Donation Completion Form */}
-            <form onSubmit={handleCompleteDonation} className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <form onSubmit={handleCompleteDonation} className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-5">
                 Proses Donasi
               </h3>
 
@@ -247,14 +249,14 @@ export default function VerifikasiPage() {
                 <button
                   type="button"
                   onClick={resetVerification}
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   Batal
                 </button>
                 <button
                   type="submit"
                   disabled={loading || !confirmationId}
-                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                   onClick={(e) => {
                     if (!confirmationId) {
                       e.preventDefault();
@@ -272,9 +274,9 @@ export default function VerifikasiPage() {
             </form>
 
             {/* Instructions */}
-            <div className="bg-blue-50 rounded-lg p-4">
-              <h4 className="text-sm font-medium text-blue-900 mb-2">Petunjuk:</h4>
-              <ol className="text-xs text-blue-700 space-y-1 list-decimal list-inside">
+            <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
+              <h4 className="text-sm font-bold text-gray-900 mb-3">Petunjuk:</h4>
+              <ol className="text-xs text-gray-700 space-y-2 list-decimal list-inside">
                 <li>Pastikan pendonor dalam kondisi sehat dan memenuhi syarat donor</li>
                 <li>Lakukan pemeriksaan kesehatan dan vital signs</li>
                 <li>Catat hasil pemeriksaan di form catatan medis</li>

@@ -44,24 +44,24 @@ const PMIDashboard = () => {
     <ProtectedRoute>
       <div className="w-full h-full flex flex-col gap-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="font-bold text-3xl text-white">
-              Dashboard - {user.institution_name}
-            </h2>
-            <p className="text-gray-300 text-sm mt-1">Palang Merah Indonesia</p>
+        <div className="rounded-2xl bg-white p-6 border border-gray-200 shadow">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="font-bold text-2xl text-gray-900">Dashboard - {user.institution_name}</h2>
+              <p className="text-gray-500 text-sm mt-1">Palang Merah Indonesia</p>
+            </div>
+            <button
+              onClick={handleRefresh}
+              disabled={isRefreshing || loading}
+              className={`px-4 py-2 rounded-lg bg-primary text-white font-medium transition-all ${
+                isRefreshing || loading
+                  ? 'opacity-60 cursor-not-allowed'
+                  : 'hover:bg-primary/90'
+              }`}
+            >
+              {isRefreshing ? 'Menyegarkan…' : 'Refresh'}
+            </button>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={isRefreshing || loading}
-            className={`px-4 py-2 rounded-lg bg-red-600 text-white font-medium transition-all ${
-              isRefreshing || loading
-                ? 'opacity-50 cursor-not-allowed'
-                : 'hover:bg-red-700'
-            }`}
-          >
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
-          </button>
         </div>
 
         {/* Error Message */}
@@ -72,45 +72,45 @@ const PMIDashboard = () => {
           </div>
         )}
 
-        {/* Metrics Row 1: Kampanye Aktif, Permintaan Berjalan, Permintaan Selesai, Tingkat Pemenuhan */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
             title="Kampanye Aktif"
             value={loading ? '-' : dashboardData?.activeCampaigns || 0}
             subtitle="kampanye berjalan"
-            icon="🎯"
             color="blue"
             isLoading={loading}
+            variant="neutral"
           />
           <MetricCard
             title="Permintaan Berjalan"
             value={loading ? '-' : dashboardData?.runningRequests || 0}
             subtitle="requests menunggu"
-            icon="📋"
             color="yellow"
             isLoading={loading}
+            variant="neutral"
           />
           <MetricCard
             title="Permintaan Selesai"
             value={loading ? '-' : dashboardData?.completedRequests || 0}
             subtitle="requests terpenuhi"
-            icon="✅"
             color="green"
             isLoading={loading}
+            variant="neutral"
           />
           <MetricCard
             title="Tingkat Pemenuhan"
             value={loading ? '-' : `${dashboardData?.fulfillmentRate || 0}%`}
             subtitle="fulfillment rate"
-            icon="📊"
             color="purple"
             isLoading={loading}
+            variant="neutral"
           />
         </div>
 
         {/* Stok Darah - Tabel */}
         <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">🩸 Stok Darah Lengkap</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Stok Darah Lengkap</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -139,21 +139,21 @@ const PMIDashboard = () => {
                       <td className="py-3 px-4 text-center">
                         {stock.quantity === 0 ? (
                           <span className="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">
-                            🔴 URGENT
+                            URGENT
                           </span>
                         ) : stock.quantity < 5 ? (
                           <span className="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">
-                            ⚠️ LOW
+                            LOW
                           </span>
                         ) : (
                           <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">
-                            ✅ NORMAL
+                            NORMAL
                           </span>
                         )}
                       </td>
                       <td className="py-3 px-4 text-gray-700 text-xs">
-                        {stock.quantity === 0 ? 'Butuh order pendonor urgently' : 
-                         stock.quantity < 5 ? 'Monitor, siap order pendonor' : 
+                        {stock.quantity === 0 ? 'Butuh order pendonor segera' : 
+                         stock.quantity < 5 ? 'Monitor, siapkan order pendonor' : 
                          'Dalam kondisi baik'}
                       </td>
                     </tr>
@@ -166,10 +166,11 @@ const PMIDashboard = () => {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-max lg:auto-rows-auto">
-          {/* Permintaan per Golongan Darah - Pie Chart */}
+          {/* Permintaan per Golongan Darah - Pie Chart */
+          }
           <div className="h-fit">
             <PieChart
-              title="📈 Permintaan per Golongan Darah"
+              title="Permintaan per Golongan Darah"
               data={pieChartData}
               isLoading={loading}
             />
@@ -178,7 +179,7 @@ const PMIDashboard = () => {
           {/* Tren Permintaan 12 Bulan - Line Chart */}
           <div className="h-fit">
             <LineChart
-              title="📊 Tren Permintaan per Bulan"
+              title="Tren Permintaan per Bulan"
               data={dashboardData?.requestsTrendByYear?.[selectedYear] || dashboardData?.requestsTrend || []}
               isLoading={loading}
               selectedYear={selectedYear}

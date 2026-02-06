@@ -14,7 +14,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div
-      className={`antialiased bg-primary pt-20 transition-all duration-300 ${isShowSidebar ? "pl-[22vw]" : "pl-8"}`}
+      className={`antialiased bg-primary pt-20 transition-all duration-300 ${isShowSidebar ? "pl-[22vw]" : "pl-8"} pr-8`}
     >
       <Header />
       <Sidebar />

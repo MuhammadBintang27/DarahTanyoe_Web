@@ -60,6 +60,12 @@ const RiwayatStok: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const itemsPerPage = 10;
+  
   // Filters
   const [actionTypeFilter, setActionTypeFilter] = useState<string>("");
   const [bloodTypeFilter, setBloodTypeFilter] = useState<string>("");
@@ -71,7 +77,7 @@ const RiwayatStok: React.FC = () => {
       fetchHistory();
       fetchStats();
     }
-  }, [user, actionTypeFilter, bloodTypeFilter, startDate, endDate]);
+  }, [user, actionTypeFilter, bloodTypeFilter, startDate, endDate, currentPage]);
 
   const fetchHistory = async () => {
     if (!user?.id) return;
@@ -82,6 +88,8 @@ const RiwayatStok: React.FC = () => {
       
       const params: any = {
         pmiId: user.id,
+        page: currentPage,
+        limit: itemsPerPage,
       };
 
       if (actionTypeFilter) params.actionType = actionTypeFilter;
@@ -100,6 +108,8 @@ const RiwayatStok: React.FC = () => {
       );
       
       setHistory(response.data.data || []);
+      setTotalPages(response.data.pagination?.totalPages || 1);
+      setTotalItems(response.data.pagination?.totalItems || 0);
     } catch (error: any) {
       console.error("Error fetching history:", error);
       toast.error("Gagal memuat riwayat stok");
@@ -205,6 +215,7 @@ const RiwayatStok: React.FC = () => {
     setBloodTypeFilter("");
     setStartDate("");
     setEndDate("");
+    setCurrentPage(1);
   };
 
   const hasActiveFilters = actionTypeFilter || bloodTypeFilter || startDate || endDate;
@@ -221,151 +232,163 @@ const RiwayatStok: React.FC = () => {
       <Toaster position="top-right" />
       <div className="flex flex-col gap-6 p-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h2 className="font-bold text-3xl text-white">Riwayat Stok Darah</h2>
-            <p className="text-gray-300 text-sm mt-1">
-              Pantau pergerakan stok darah yang ditambahkan, digunakan, atau kadaluarsa
-            </p>
-          </div>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="bg-white hover:bg-gray-100 text-gray-800 px-4 py-2 rounded-lg flex items-center gap-2 font-semibold transition-all shadow-md"
-          >
-            <Filter size={18} />
-            Filter
-          </button>
+        <div className="mb-6">
+          <h2 className="font-bold text-3xl text-white">Riwayat Stok Darah</h2>
+          <p className="mt-2 text-lg text-white font-semibold">
+            Pantau pergerakan stok darah Anda
+          </p>
         </div>
 
         {/* Statistics Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium opacity-90">Total Ditambahkan</p>
-                <TrendingUp size={24} />
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold text-gray-700">Total Ditambahkan</p>
+                <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
+                  <TrendingUp size={20} className="text-green-600" />
+                </div>
               </div>
-              <p className="text-4xl font-bold">{stats.totalAdded}</p>
-              <p className="text-xs opacity-75 mt-1">kantong darah</p>
+              <p className="text-3xl font-black text-gray-900">{stats.totalAdded}</p>
+              <p className="text-xs text-gray-600 mt-1">kantong darah</p>
             </div>
 
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium opacity-90">Total Digunakan</p>
-                <TrendingDown size={24} />
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold text-gray-700">Total Digunakan</p>
+                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
+                  <TrendingDown size={20} className="text-blue-600" />
+                </div>
               </div>
-              <p className="text-4xl font-bold">{stats.totalUsed}</p>
-              <p className="text-xs opacity-75 mt-1">kantong darah</p>
+              <p className="text-3xl font-black text-gray-900">{stats.totalUsed}</p>
+              <p className="text-xs text-gray-600 mt-1">kantong darah</p>
             </div>
 
-            <div className="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-medium opacity-90">Total Kadaluarsa</p>
-                <AlertCircle size={24} />
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-bold text-gray-700">Total Kadaluarsa</p>
+                <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
+                  <AlertCircle size={20} className="text-red-600" />
+                </div>
               </div>
-              <p className="text-4xl font-bold">{stats.totalExpired}</p>
-              <p className="text-xs opacity-75 mt-1">kantong darah</p>
+              <p className="text-3xl font-black text-gray-900">{stats.totalExpired}</p>
+              <p className="text-xs text-gray-600 mt-1">kantong darah</p>
             </div>
           </div>
         )}
 
         {/* Filters */}
-        {showFilters && (
-          <div className="bg-white rounded-xl shadow-lg p-4">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Filter Riwayat</h3>
-            <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
-              {/* Action Type Filter */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
-                  Tipe Aksi
-                </label>
-                <select
-                  value={actionTypeFilter}
-                  onChange={(e) => setActionTypeFilter(e.target.value)}
-                  className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-2.5 text-gray-800 focus:outline-none focus:border-primary transition-colors text-sm"
-                >
-                  <option value="">Semua</option>
-                  <option value="add">Ditambahkan</option>
-                  <option value="used">Digunakan</option>
-                  <option value="expired">Kadaluarsa</option>
-                  <option value="reduce">Dikurangi</option>
-                </select>
-              </div>
-
-              {/* Blood Type Filter */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
-                  Golongan Darah
-                </label>
-                <select
-                  value={bloodTypeFilter}
-                  onChange={(e) => setBloodTypeFilter(e.target.value)}
-                  className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-2.5 text-gray-800 focus:outline-none focus:border-primary transition-colors text-sm"
-                >
-                  <option value="">Semua</option>
-                  <option value="A+">A+</option>
-                  <option value="A-">A-</option>
-                  <option value="B+">B+</option>
-                  <option value="B-">B-</option>
-                  <option value="AB+">AB+</option>
-                  <option value="AB-">AB-</option>
-                  <option value="O+">O+</option>
-                  <option value="O-">O-</option>
-                </select>
-              </div>
-
-              {/* Start Date */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
-                  Dari Tanggal
-                </label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-2.5 text-gray-800 focus:outline-none focus:border-primary transition-colors text-sm"
-                />
-              </div>
-
-              {/* End Date */}
-              <div>
-                <label className="block text-xs font-medium text-gray-600 mb-2">
-                  Sampai Tanggal
-                </label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-2.5 text-gray-800 focus:outline-none focus:border-primary transition-colors text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Reset Button */}
-            {hasActiveFilters && (
-              <div className="mt-3 flex justify-end">
-                <button
-                  onClick={resetFilters}
-                  className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors"
-                >
-                  <X size={14} />
-                  Reset Filter
-                </button>
-              </div>
-            )}
+        <div className="bg-white rounded-xl shadow-lg p-5 border border-gray-200">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold text-gray-900">Filter</h3>
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg transition-colors border border-blue-200"
+            >
+              {showFilters ? <X size={14} /> : <Filter size={14} />}
+              {showFilters ? 'Tutup' : 'Tampilkan'}
+            </button>
           </div>
-        )}
+          
+          {showFilters && (
+            <>
+              <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
+                {/* Action Type Filter */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
+                    Tipe Aksi
+                  </label>
+                  <select
+                    value={actionTypeFilter}
+                    onChange={(e) => setActionTypeFilter(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                  >
+                    <option value="">Semua</option>
+                    <option value="add">Ditambahkan</option>
+                    <option value="used">Digunakan</option>
+                    <option value="expired">Kadaluarsa</option>
+                    <option value="reduce">Dikurangi</option>
+                  </select>
+                </div>
+
+                {/* Blood Type Filter */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
+                    Golongan Darah
+                  </label>
+                  <select
+                    value={bloodTypeFilter}
+                    onChange={(e) => setBloodTypeFilter(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                  >
+                    <option value="">Semua</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
+                  </select>
+                </div>
+
+                {/* Start Date */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
+                    Dari Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                  />
+                </div>
+
+                {/* End Date */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
+                    Sampai Tanggal
+                  </label>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Reset Button */}
+              {hasActiveFilters && (
+                <div className="mt-4 flex justify-end">
+                  <button
+                    onClick={resetFilters}
+                    className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition-colors border border-blue-200"
+                  >
+                    <X size={14} />
+                    Reset Filter
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* History List */}
         {loading ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <p className="text-gray-500">Memuat riwayat...</p>
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-200">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Memuat riwayat...</p>
           </div>
         ) : history.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <Package size={64} className="text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg mb-2">Belum ada riwayat stok</p>
-            <p className="text-gray-400 text-sm">
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-200">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package size={32} className="text-gray-400" />
+            </div>
+            <p className="text-gray-900 text-lg font-bold mb-2">Belum Ada Riwayat</p>
+            <p className="text-gray-600 text-sm">
               Riwayat pergerakan stok darah akan muncul di sini
             </p>
           </div>
@@ -374,73 +397,134 @@ const RiwayatStok: React.FC = () => {
             {history.map((record) => (
               <div
                 key={record.id}
-                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all"
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-all"
               >
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-start gap-3">
-                    {getActionIcon(record.change_type)}
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
+                <div className="flex items-start justify-between mb-5">
+                  <div className="flex items-start gap-3 flex-1">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-xs font-semibold ${getActionColor(
-                            record.change_type
-                          )}`}
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold border ${
+                            record.change_type === 'add'
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : record.change_type === 'used'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : record.change_type === 'expired'
+                              ? 'bg-red-50 text-red-700 border-red-200'
+                              : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                          }`}
                         >
                           {getActionLabel(record.change_type)}
                         </span>
-                        <span className="text-lg font-bold text-gray-800">
-                          {record.quantity_change} kantong
+                        <span className="text-2xl font-black text-gray-900">
+                          {record.quantity_change}
                         </span>
+                        <span className="text-sm text-gray-600 font-medium">kantong</span>
                       </div>
-                      <p className="text-sm text-gray-500">
-                        Sisa stok: {record.new_quantity} kantong
+                      <p className="text-xs text-gray-600 font-semibold">
+                        Sisa Stok: {record.new_quantity} kantong
                       </p>
                     </div>
                   </div>
                   
                   <div className="text-right">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-1">
-                      <Calendar size={14} />
+                    <p className="text-xs text-gray-700 font-semibold mb-1">
                       {formatDate(record.created_at)}
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <Clock size={14} />
+                    </p>
+                    <p className="text-xs text-gray-600">
                       {formatTime(record.created_at)}
-                    </div>
+                    </p>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Golongan Darah</p>
-                    <span className="inline-block bg-red-100 text-red-700 px-3 py-1 rounded-full text-sm font-bold">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs text-gray-600 font-semibold mb-1">Golongan Darah</p>
+                    <p className="text-sm text-gray-900 font-bold">
                       {record.blood_type}
-                    </span>
+                    </p>
                   </div>
                   
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Kuantitas Sebelumnya</p>
-                    <p className="text-sm text-gray-800 font-semibold">
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs text-gray-600 font-semibold mb-1">Sebelumnya</p>
+                    <p className="text-sm text-gray-900 font-bold">
                       {record.previous_quantity} kantong
                     </p>
                   </div>
 
-                  <div>
-                    <p className="text-xs text-gray-500 mb-1">Kuantitas Baru</p>
-                    <p className="text-sm text-gray-800 font-semibold">
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs text-gray-600 font-semibold mb-1">Sekarang</p>
+                    <p className="text-sm text-gray-900 font-bold">
                       {record.new_quantity} kantong
                     </p>
                   </div>
                 </div>
 
                 {record.notes && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
-                    <p className="text-xs text-blue-600 font-medium mb-1">Catatan</p>
-                    <p className="text-sm text-gray-700">{record.notes}</p>
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-700 font-bold mb-1">Catatan</p>
+                    <p className="text-sm text-gray-900">{record.notes}</p>
                   </div>
                 )}
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!loading && history.length > 0 && totalPages > 1 && (
+          <div className="bg-white rounded-xl shadow-lg p-5 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                Menampilkan {(currentPage - 1) * itemsPerPage + 1} - {Math.min(currentPage * itemsPerPage, totalItems)} dari {totalItems} riwayat
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Sebelumnya
+                </button>
+                
+                <div className="flex gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`w-10 h-10 rounded-lg font-semibold transition-colors ${
+                          currentPage === pageNum
+                            ? 'bg-primary text-white'
+                            : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Selanjutnya
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

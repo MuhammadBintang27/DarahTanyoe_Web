@@ -8,6 +8,12 @@ interface MetricCardProps {
   color?: 'blue' | 'red' | 'green' | 'yellow' | 'purple';
   isLoading?: boolean;
   onClick?: () => void;
+  /**
+   * Visual style of the card
+   * - 'tinted': light tinted background (default, backward compatible)
+   * - 'neutral': white card with subtle border (matches dashboard screenshot)
+   */
+  variant?: 'tinted' | 'neutral';
 }
 
 const bgColors = {
@@ -42,23 +48,24 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   color = 'blue',
   isLoading = false,
   onClick,
+  variant = 'tinted',
 }) => {
   return (
     <div
       className={`
-        w-full h-60 rounded-lg shadow-md border 
-        transition-all hover:shadow-lg hover:scale-105
-        ${bgColors[color]}
+        w-full h-28 rounded-xl border 
+        transition-all hover:shadow-md
+        ${variant === 'tinted' ? bgColors[color] : 'bg-white border-gray-200'}
         ${onClick ? 'cursor-pointer' : ''}
       `}
       onClick={onClick}
     >
-      <div className="h-full flex flex-col justify-between p-6">
+      <div className="h-full flex flex-col justify-between p-4">
         {/* Header */}
         <div className="flex justify-between items-start">
-          <h3 className={`text-sm font-semibold ${titleColors[color]}`}>{title}</h3>
+          <h3 className={`text-xs font-semibold ${variant === 'tinted' ? titleColors[color] : 'text-gray-600'}`}>{title}</h3>
           {icon && (
-            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${iconBgColors[color]}`}>
+            <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${variant === 'tinted' ? iconBgColors[color] : 'bg-gray-100 text-gray-600'}`}>
               {icon}
             </div>
           )}
@@ -68,13 +75,13 @@ export const MetricCard: React.FC<MetricCardProps> = ({
         <div>
           {isLoading ? (
             <div className="space-y-2">
-              <div className="h-8 bg-gray-200 rounded w-32 animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+              <div className="h-7 bg-gray-200 rounded w-28 animate-pulse"></div>
+              <div className="h-3.5 bg-gray-200 rounded w-24 animate-pulse"></div>
             </div>
           ) : (
             <>
-              <div className="text-3xl font-bold text-gray-900">{value}</div>
-              {subtitle && <p className="text-xs text-gray-600 mt-1">{subtitle}</p>}
+              <div className="text-2xl font-bold text-gray-900">{value}</div>
+              {subtitle && <p className="text-[11px] text-gray-500 mt-1">{subtitle}</p>}
             </>
           )}
         </div>

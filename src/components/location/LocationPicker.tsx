@@ -188,8 +188,8 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
 
       {/* Modal */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b">
               <h3 className="text-lg font-semibold">Pilih Lokasi</h3>
@@ -200,108 +200,110 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 <X className="w-5 h-5" />
               </button>
             </div>
-
-            {/* Search Bar */}
-            <div className="p-4 border-b">
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="Cari alamat atau tempat..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                  />
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Search Bar */}
+              <div className="p-4 border-b">
+                <div className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                      placeholder="Cari alamat atau tempat..."
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    />
+                  </div>
+                  <button
+                    onClick={handleSearch}
+                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                  >
+                    Cari
+                  </button>
+                  <button
+                    onClick={getCurrentLocation}
+                    disabled={isLoadingLocation}
+                    className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoadingLocation ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Crosshair className="w-5 h-5" />
+                    )}
+                  </button>
                 </div>
-                <button
-                  onClick={handleSearch}
-                  className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
-                >
-                  Cari
-                </button>
-                <button
-                  onClick={getCurrentLocation}
-                  disabled={isLoadingLocation}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoadingLocation ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Crosshair className="w-5 h-5" />
-                  )}
-                </button>
               </div>
-            </div>
 
-            {/* Map Container */}
-            <div className="flex-1 relative min-h-[400px] bg-gray-100">
-              {!isMapReady ? (
-                <div className="absolute inset-0 flex items-center justify-center z-10">
-                  <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-red-500 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">Memuat peta...</p>
+              {/* Map Container */}
+              <div className="relative min-h-[400px] bg-gray-100">
+                {!isMapReady ? (
+                  <div className="absolute inset-0 flex items-center justify-center z-10">
+                    <div className="text-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-red-500 mx-auto mb-2" />
+                      <p className="text-sm text-gray-600">Memuat peta...</p>
+                    </div>
+                  </div>
+                ) : (
+                  <MapContainer
+                    key={mapKey}
+                    center={[defaultCenter.lat, defaultCenter.lng] as LatLngExpression}
+                    zoom={15}
+                    style={{ height: '100%', width: '100%', minHeight: '400px' }}
+                    className="z-0"
+                    scrollWheelZoom={true}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    
+                    {selectedLocation && (
+                      <Marker 
+                        position={[selectedLocation.lat, selectedLocation.lng] as LatLngExpression}
+                        draggable={true}
+                        eventHandlers={{
+                          dragend: (e: any) => {
+                            const marker = e.target;
+                            const position = marker.getLatLng();
+                            const newLocation = { 
+                              lat: position.lat, 
+                              lng: position.lng 
+                            };
+                            setSelectedLocation(newLocation);
+                            reverseGeocode(newLocation);
+                          },
+                        }}
+                      />
+                    )}
+                    
+                    <MapClickHandler />
+                  </MapContainer>
+                )}
+              </div>
+
+              {/* Info Panel */}
+              {selectedLocation && (
+                <div className="p-4 border-t bg-gray-50">
+                  <div className="space-y-2">
+                    <div className="flex items-start gap-2">
+                      <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-700">Alamat:</p>
+                        <p className="text-sm text-gray-600 break-words">{address || 'Memuat alamat...'}</p>
+                      </div>
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Koordinat: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
+                    </div>
                   </div>
                 </div>
-              ) : (
-                <MapContainer
-                  key={mapKey}
-                  center={[defaultCenter.lat, defaultCenter.lng] as LatLngExpression}
-                  zoom={15}
-                  style={{ height: '100%', width: '100%', minHeight: '400px' }}
-                  className="z-0"
-                  scrollWheelZoom={true}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  
-                  {selectedLocation && (
-                    <Marker 
-                      position={[selectedLocation.lat, selectedLocation.lng] as LatLngExpression}
-                      draggable={true}
-                      eventHandlers={{
-                        dragend: (e: any) => {
-                          const marker = e.target;
-                          const position = marker.getLatLng();
-                          const newLocation = { 
-                            lat: position.lat, 
-                            lng: position.lng 
-                          };
-                          setSelectedLocation(newLocation);
-                          reverseGeocode(newLocation);
-                        },
-                      }}
-                    />
-                  )}
-                  
-                  <MapClickHandler />
-                </MapContainer>
               )}
             </div>
 
-            {/* Info Panel */}
-            {selectedLocation && (
-              <div className="p-4 border-t bg-gray-50">
-                <div className="space-y-2">
-                  <div className="flex items-start gap-2">
-                    <MapPin className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-700">Alamat:</p>
-                      <p className="text-sm text-gray-600">{address || 'Memuat alamat...'}</p>
-                    </div>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Koordinat: {selectedLocation.lat.toFixed(6)}, {selectedLocation.lng.toFixed(6)}
-                  </div>
-                </div>
-              </div>
-            )}
-
             {/* Footer */}
-            <div className="flex gap-3 p-4 border-t">
+            <div className="flex gap-3 p-4 border-t bg-white">
               <button
                 onClick={handleCancel}
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"

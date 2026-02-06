@@ -47,7 +47,8 @@ export default function FulfillmentDetailPage() {
   const [eligibleDonorsFromSearch, setEligibleDonorsFromSearch] = useState<EligibleDonor[]>([]);
   const [searchingDonors, setSearchingDonors] = useState(false);
   const [showDonorSearch, setShowDonorSearch] = useState(false);
-  const [selectedDonorCount, setSelectedDonorCount] = useState(1);
+  const [selectedDonorCount, setSelectedDonorCount] = useState(0); // Start from 0
+  const [selectedRadiusKm, setSelectedRadiusKm] = useState<number | null>(null); // Filter radius
   const [sendingNotifications, setSendingNotifications] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -72,7 +73,8 @@ export default function FulfillmentDetailPage() {
 
       if (response.data.eligible_donors) {
         setEligibleDonorsFromSearch(response.data.eligible_donors);
-        setSelectedDonorCount(Math.min(response.data.eligible_donors.length, 1)); // Start with 1 but allow up to max
+        setSelectedDonorCount(0); // Start from 0
+        setSelectedRadiusKm(null); // Reset radius filter
         setShowDonorSearch(true);
         toast.success(`Ditemukan ${response.data.eligible_donors_count} donor potensial!`);
       }
@@ -83,6 +85,16 @@ export default function FulfillmentDetailPage() {
       setSearchingDonors(false);
     }
   };
+
+  // Filter donors by radius
+  const filteredDonorsByRadius = selectedRadiusKm
+    ? eligibleDonorsFromSearch.filter(
+        (donor) => donor.distance_km !== undefined && donor.distance_km <= selectedRadiusKm
+      )
+    : eligibleDonorsFromSearch;
+
+  // Maximum donors available after radius filter
+  const maxAvailableDonors = filteredDonorsByRadius.length;
 
   // Send notifications to selected count of donors
   const handleSendNotifications = async () => {
@@ -107,6 +119,7 @@ export default function FulfillmentDetailPage() {
         toast.success(`Notifikasi berhasil dikirim ke ${notifiedCount} donor!`);
         setShowDonorSearch(false);
         setEligibleDonorsFromSearch([]);
+        setSelectedRadiusKm(null);
         // Reload confirmations to show updated status
         getConfirmations(fulfillmentId);
       }
@@ -165,12 +178,70 @@ export default function FulfillmentDetailPage() {
   return (
     <ProtectedRoute>
       <Toaster position="top-right" />
+      <style jsx>{`
+        input[type="range"] {
+          -webkit-appearance: none;
+          appearance: none;
+          background: transparent;
+        }
+
+        input[type="range"]::-webkit-slider-track {
+          height: 8px;
+          border-radius: 4px;
+        }
+
+        input[type="range"]::-moz-range-track {
+          height: 8px;
+          border-radius: 4px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #2563eb;
+          cursor: pointer;
+          border: 3px solid white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+          margin-top: -6px;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #2563eb;
+          cursor: pointer;
+          border: 3px solid white;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        input[type="range"]:disabled::-webkit-slider-thumb {
+          background: #9ca3af;
+          cursor: not-allowed;
+        }
+
+        input[type="range"]:disabled::-moz-range-thumb {
+          background: #9ca3af;
+          cursor: not-allowed;
+        }
+
+        input[type="range"]:hover::-webkit-slider-thumb {
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.5);
+        }
+
+        input[type="range"]:hover::-moz-range-thumb {
+          box-shadow: 0 2px 8px rgba(37, 99, 235, 0.5);
+        }
+      `}</style>
       <div className="p-6">
         {/* Header */}
         <div className="mb-6">
           <button
             onClick={() => router.push('/pemenuhan')}
-            className="text-white hover:text-gray-100 font-medium mb-4 flex items-center gap-2 transition-colors"
+            className="text-white hover:text-gray-200 font-medium mb-4 flex items-center gap-2 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -178,97 +249,171 @@ export default function FulfillmentDetailPage() {
             Kembali
           </button>
           <div className="flex items-start justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-white">
-                  Pemenuhan untuk {currentFulfillment?.patient_name}
-                </h1>
-                <p className="mt-2 mb-6 text-sm text-white">ID: {currentFulfillment?.id}</p>
-              </div>
-              <div className="flex gap-3">
-                {!showDonorSearch && (
-                  <button
-                    onClick={handleSearchDonors}
-                    disabled={searchingDonors || currentFulfillment?.status === 'fulfilled'}
-                    title={currentFulfillment?.status === 'fulfilled' ? 'Pencarian pendonor sudah ditutup (terpenuhi)' : ''}
-                    className="bg-teal-500 text-white px-4 py-2 rounded-lg font-medium border-2 border-white hover:bg-teal-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    {searchingDonors ? '⏳ Mencari...' : currentFulfillment?.status === 'fulfilled' ? '✓ Sudah Terpenuhi' : ' Cari Pendonor'}
-                  </button>
-                )}
-                <button
-                  onClick={() => router.push(`/pemenuhan/${fulfillmentId}/verifikasi`)}
-                  className="bg-orange-500 text-white px-4 py-2 rounded-lg font-medium border-2 border-white hover:bg-orange-600 transition-colors"
-                >
-                  Verifikasi Donor
-                </button>
-                {['initiated', 'donors_found', 'in_progress'].includes(currentFulfillment?.status) && (
-                  <button
-                    onClick={() => setShowCancelDialog(true)}
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium border-2 border-white hover:bg-blue-700 transition-colors"
-                  >
-                    Batalkan
-                  </button>
-                )}
-              </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">
+                {currentFulfillment?.patient_name}
+              </h1>
+              <p className="mt-2 text-lg text-white font-semibold mb-6">Pemenuhan Permintaan Darah</p>
             </div>
+            <div className="flex gap-2">
+              {!showDonorSearch && (
+                <button
+                  onClick={handleSearchDonors}
+                  disabled={
+                    searchingDonors ||
+                    currentFulfillment?.status === 'fulfilled'
+                  }
+                  title={
+                    currentFulfillment?.status === 'fulfilled' 
+                      ? 'Pencarian pendonor sudah ditutup (terpenuhi)'
+                      : ''
+                  }
+                  className="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg font-medium hover:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors border border-blue-200"
+                >
+                  {searchingDonors
+                    ? 'Mencari...'
+                    : currentFulfillment?.status === 'fulfilled' 
+                      ? 'Sudah Terpenuhi'
+                      : 'Cari Pendonor'}
+                </button>
+              )}
+              <button
+                onClick={() => router.push(`/pemenuhan/${fulfillmentId}/verifikasi`)}
+                className="bg-green-50 text-green-700 px-4 py-2 rounded-lg font-medium hover:bg-green-100 transition-colors border border-green-200"
+              >
+                Verifikasi Donor
+              </button>
+              {['initiated', 'donors_found', 'in_progress'].includes(currentFulfillment?.status) && (
+                <button
+                  onClick={() => setShowCancelDialog(true)}
+                  className="bg-red-50 text-red-700 px-4 py-2 rounded-lg font-medium hover:bg-red-100 transition-colors border border-red-200"
+                >
+                  Batalkan
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Progress */}
-              {currentFulfillment && <FulfillmentProgress fulfillment={currentFulfillment} confirmations={confirmations} />}
+          {/* Main Content */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Progress */}
+            {currentFulfillment && <FulfillmentProgress fulfillment={currentFulfillment} confirmations={confirmations} />}
 
-              {/* Donor Search UI */}
-              {showDonorSearch && eligibleDonorsFromSearch.length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-6">
-                    Pilih Jumlah Donor untuk Dikirim Notifikasi
-                  </h3>
+            {/* Donor Search UI */}
+            {showDonorSearch && eligibleDonorsFromSearch.length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-6">
+                  Pilih Jumlah Donor
+                </h3>
 
-                  {/* Slider */}
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-gray-700">
-                        Jumlah Donor: <span className="text-2xl font-bold text-red-600">{selectedDonorCount}</span>
-                      </label>
-                      <span className="text-sm text-gray-500">
-                        dari {eligibleDonorsFromSearch.length} donor tersedia
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min="1"
-                      max={eligibleDonorsFromSearch.length}
-                      value={selectedDonorCount}
-                      onChange={(e) => {
-                        const newCount = parseInt(e.target.value);
-                        console.log('Slider changed to:', newCount, 'Max:', eligibleDonorsFromSearch.length);
-                        setSelectedDonorCount(newCount);
-                      }}
-                      className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-red-600"
-                    />
-                    <div className="flex justify-between text-xs text-gray-400 mt-1">
-                      <span>1</span>
-                      <span>{eligibleDonorsFromSearch.length}</span>
-                    </div>
-                  </div>
-
-                  {/* Preview of selected donors */}
-                  <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm text-gray-600 mb-3">
-                      <strong>Preview {selectedDonorCount} donor terdekat:</strong>
+                {/* Radius Filter Dropdown */}
+                <div className="mb-6">
+                  <label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Filter Radius Pencarian
+                  </label>
+                  <select
+                    value={selectedRadiusKm || ''}
+                    onChange={(e) => {
+                      const newRadius = e.target.value ? Number(e.target.value) : null;
+                      setSelectedRadiusKm(newRadius);
+                      
+                      // Auto-adjust donor count if it exceeds filtered results
+                      const filteredCount = newRadius
+                        ? eligibleDonorsFromSearch.filter(d => d.distance_km && d.distance_km <= newRadius).length
+                        : eligibleDonorsFromSearch.length;
+                      
+                      if (selectedDonorCount > filteredCount) {
+                        setSelectedDonorCount(filteredCount);
+                      }
+                    }}
+                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900 font-medium"
+                  >
+                    <option value="">Semua Jarak (Total: {eligibleDonorsFromSearch.length} donor)</option>
+                    <option value="5">Dalam radius 5 km</option>
+                    <option value="10">Dalam radius 10 km</option>
+                    <option value="15">Dalam radius 15 km</option>
+                    <option value="20">Dalam radius 20 km</option>
+                    <option value="30">Dalam radius 30 km</option>
+                    <option value="50">Dalam radius 50 km</option>
+                  </select>
+                  {selectedRadiusKm && (
+                    <p className="text-sm text-blue-600 mt-2 font-medium">
+                      ✓ Ditemukan {maxAvailableDonors} donor dalam radius {selectedRadiusKm} km
                     </p>
-                    <div className="space-y-2">
-                      {eligibleDonorsFromSearch.slice(0, selectedDonorCount).map((donor, idx) => {
+                  )}
+                </div>
+
+                {/* Slider */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <label className="text-sm font-medium text-gray-600">
+                        Jumlah Donor
+                      </label>
+                      <p className="text-3xl font-bold text-gray-900 mt-1">{selectedDonorCount}</p>
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      dari {maxAvailableDonors} tersedia
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max={maxAvailableDonors}
+                    value={Math.min(selectedDonorCount, maxAvailableDonors)}
+                    onChange={(e) => {
+                      const newCount = parseInt(e.target.value);
+                      setSelectedDonorCount(newCount);
+                    }}
+                    disabled={maxAvailableDonors === 0}
+                    className="w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{
+                      background: maxAvailableDonors === 0 
+                        ? '#e5e7eb' 
+                        : `linear-gradient(to right, #2563eb 0%, #2563eb ${(Math.min(selectedDonorCount, maxAvailableDonors) / maxAvailableDonors) * 100}%, #e5e7eb ${(Math.min(selectedDonorCount, maxAvailableDonors) / maxAvailableDonors) * 100}%, #e5e7eb 100%)`,
+                      height: '8px',
+                      borderRadius: '4px'
+                    }}
+                  />
+                  <div className="flex justify-between text-xs text-gray-500 mt-2">
+                    <span>0</span>
+                    <span>{maxAvailableDonors}</span>
+                  </div>
+                </div>
+
+                {/* Preview of selected donors */}
+                <div className="mb-6">
+                  <p className="text-sm font-semibold text-gray-700 mb-3">
+                    {selectedDonorCount} Donor Terdekat {selectedRadiusKm ? `(≤ ${selectedRadiusKm} km)` : ''}
+                  </p>
+                  {maxAvailableDonors === 0 ? (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-center">
+                      <p className="text-sm text-yellow-700 font-medium">
+                        Tidak ada donor dalam radius {selectedRadiusKm} km
+                      </p>
+                      <p className="text-xs text-yellow-600 mt-1">
+                        Coba pilih radius yang lebih besar
+                      </p>
+                    </div>
+                  ) : selectedDonorCount === 0 ? (
+                    <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                      <p className="text-sm text-gray-600">
+                        Geser slider untuk memilih jumlah donor
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {filteredDonorsByRadius.slice(0, selectedDonorCount).map((donor, idx) => {
                         const donorName = donor.full_name || donor.name || `Donor ${donor.donor_id.substring(0, 8)}...`;
-                        console.log(`Donor ${idx}:`, donor); // Debug untuk cek structure
                         return (
-                          <div key={idx} className="flex items-center justify-between p-2 bg-white rounded border border-gray-200">
-                            <span className="text-sm text-gray-700">
+                          <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                            <span className="text-sm font-medium text-gray-900">
                               {idx + 1}. {donorName}
                             </span>
                             {donor.distance_km !== undefined && donor.distance_km !== null ? (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-gray-600 font-medium">
                                 {donor.distance_km.toFixed(1)} km
                               </span>
                             ) : (
@@ -278,118 +423,114 @@ export default function FulfillmentDetailPage() {
                         );
                       })}
                     </div>
-                  </div>
-
-                  {/* Send button */}
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        setShowDonorSearch(false);
-                        setEligibleDonorsFromSearch([]);
-                      }}
-                      className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      Batal
-                    </button>
-                    <button
-                      onClick={handleSendNotifications}
-                      disabled={sendingNotifications}
-                      className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50"
-                    >
-                      {sendingNotifications ? '⏳ Mengirim...' : `📧 Kirim Notifikasi ke ${selectedDonorCount} Donor`}
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Confirmations - hanya tampilkan yang sudah dikirim notif */}
-              {confirmations.filter(c => c.status !== 'pending_notification').length > 0 && (
-                <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    Konfirmasi Pendonor ({confirmations.filter(c => c.status !== 'pending_notification').length})
-                  </h3>
-                  <div className="space-y-3">
-                    {confirmations.filter(c => c.status !== 'pending_notification').map((confirmation) => (
-                      <div
-                        key={confirmation.id}
-                        className="border border-gray-200 rounded-lg p-4 hover:border-gray-300"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">
-                              {confirmation.donor?.full_name || 'Unknown'}
-                            </p>
-                            <p className="text-sm text-gray-600">{confirmation.unique_code}</p>
-                            <div className="mt-2 flex items-center gap-4 text-xs text-gray-500">
-                              <span>Status: {confirmation.status}</span>
-                              {confirmation.code_verified && (
-                                <span className="text-green-600">✓ Terverifikasi</span>
-                              )}
-                            </div>
-                          </div>
-                          <span
-                            className={`px-2 py-1 rounded text-xs font-medium ${
-                              confirmation.status === 'completed'
-                                ? 'bg-green-100 text-green-800'
-                                : confirmation.status === 'confirmed'
-                                ? 'bg-blue-100 text-blue-800'
-                                : confirmation.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-gray-800'
-                            }`}
-                          >
-                            {confirmation.status}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Details Card */}
-              <div className="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Detail Permintaan</h3>
-                <dl className="space-y-3 text-sm">
-                  {currentFulfillment && (
-                    <>
-                      <div>
-                        <dt className="text-gray-500">Pasien</dt>
-                        <dd className="font-medium text-gray-900">{currentFulfillment.patient_name}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Golongan Darah</dt>
-                        <dd className="font-medium text-gray-900">{currentFulfillment.blood_type}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Jumlah Dibutuhkan</dt>
-                        <dd className="font-medium text-gray-900">
-                          {currentFulfillment.quantity_needed} kantong
-                        </dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Urgensi</dt>
-                        <dd className="font-medium text-gray-900">{currentFulfillment.urgency_level}</dd>
-                      </div>
-                      <div>
-                        <dt className="text-gray-500">Radius Pencarian</dt>
-                        <dd className="font-medium text-gray-900">
-                          {currentFulfillment.search_radius_km} km
-                        </dd>
-                      </div>
-                      {currentFulfillment.notes && (
-                        <div>
-                          <dt className="text-gray-500">Catatan</dt>
-                          <dd className="font-medium text-gray-900">{currentFulfillment.notes}</dd>
-                        </div>
-                      )}
-                    </>
                   )}
-                </dl>
+                </div>
+
+                {/* Send button */}
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowDonorSearch(false);
+                      setEligibleDonorsFromSearch([]);
+                      setSelectedRadiusKm(null);
+                    }}
+                    className="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={handleSendNotifications}
+                    disabled={sendingNotifications || maxAvailableDonors === 0 || selectedDonorCount === 0}
+                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  >
+                    {sendingNotifications ? 'Mengirim...' : selectedDonorCount === 0 ? 'Pilih Minimal 1 Donor' : `Kirim ke ${selectedDonorCount} Donor`}
+                  </button>
+                </div>
               </div>
+            )}
+
+            {/* Confirmations - hanya tampilkan yang sudah dikirim notif */}
+            {confirmations.filter(c => c.status !== 'pending_notification').length > 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  Konfirmasi Pendonor ({confirmations.filter(c => c.status !== 'pending_notification').length})
+                </h3>
+                <div className="space-y-3">
+                  {confirmations.filter(c => c.status !== 'pending_notification').map((confirmation) => (
+                    <div
+                      key={confirmation.id}
+                      className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <p className="font-semibold text-gray-900">
+                            {confirmation.donor?.full_name || 'Unknown'}
+                          </p>
+                          <p className="text-xs text-gray-600 mt-1">{confirmation.unique_code}</p>
+                          <div className="mt-2 flex items-center gap-3 text-xs">
+                            {confirmation.code_verified && (
+                              <span className="text-green-600 font-medium">✓ Terverifikasi</span>
+                            )}
+                          </div>
+                        </div>
+                        <span
+                          className={`px-3 py-1 rounded-lg text-xs font-semibold border ${
+                            confirmation.status === 'completed'
+                              ? 'bg-green-50 text-green-700 border-green-200'
+                              : confirmation.status === 'confirmed'
+                              ? 'bg-blue-50 text-blue-700 border-blue-200'
+                              : confirmation.status === 'pending'
+                              ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                              : 'bg-gray-50 text-gray-700 border-gray-200'
+                          }`}
+                        >
+                          {confirmation.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-6">
+            {/* Details Card */}
+            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+              <h3 className="text-lg font-bold text-gray-900 mb-5">Detail Permintaan</h3>
+              <dl className="space-y-4 text-sm">
+                {currentFulfillment && (
+                  <>
+                    <div>
+                      <dt className="text-xs font-medium text-gray-600 mb-1">Pasien</dt>
+                      <dd className="font-semibold text-gray-900">{currentFulfillment.patient_name}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-medium text-gray-600 mb-1">Golongan Darah</dt>
+                      <dd className="font-semibold text-gray-900">{currentFulfillment.blood_type}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-medium text-gray-600 mb-1">Jumlah Dibutuhkan</dt>
+                      <dd className="font-semibold text-gray-900">
+                        {currentFulfillment.quantity_needed} kantong
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs font-medium text-gray-600 mb-1">Radius Pencarian</dt>
+                      <dd className="font-semibold text-gray-900">
+                        {currentFulfillment.search_radius_km} km
+                      </dd>
+                    </div>
+                    {currentFulfillment.notes && (
+                      <div>
+                        <dt className="text-xs font-medium text-gray-600 mb-1">Catatan</dt>
+                        <dd className="font-semibold text-gray-900">{currentFulfillment.notes}</dd>
+                      </div>
+                    )}
+                  </>
+                )}
+              </dl>
             </div>
           </div>
         </div>

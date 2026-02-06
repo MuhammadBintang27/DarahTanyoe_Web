@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Calendar, Clock, Info, AlertCircle } from "lucide-react";
-import { AllocationCard } from "@/components/allocation/AllocationCard";
-import { useAllocation, AllocationData, FreeStockData } from "@/hooks/useAllocation";
+import { X, Calendar, Clock, Info, AlertCircle, Package, ClipboardList, Check, Loader2 } from "lucide-react";
+import { useAllocation } from "@/hooks/useAllocation";
 
 interface CreatePickupModalProps {
   isOpen: boolean;
@@ -186,11 +185,11 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] shadow-2xl flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-800">Jadwalkan Pickup Darah</h3>
+        <div className="flex justify-between items-center p-6 border-b">
+          <h3 className="text-xl font-semibold text-gray-900">Jadwalkan Pickup Darah</h3>
           <button
             onClick={handleClose}
             disabled={loading}
@@ -200,23 +199,25 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
           </button>
         </div>
 
-        {/* Info Banner */}
-        <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mb-6">
-          <div className="flex items-start gap-3">
-            <Info className="text-blue-500 flex-shrink-0 mt-0.5" size={20} />
-            <div>
-              <p className="text-blue-900 text-sm font-medium">
-                Darah tersedia dari allocation & free stock
-              </p>
-              <p className="text-blue-700 text-xs mt-1">
-                Kedua sumber akan diambil secara bersamaan untuk melengkapi kebutuhan darah.
-              </p>
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Info Banner */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <Info className="text-blue-600 flex-shrink-0 mt-0.5" size={20} />
+              <div>
+                <p className="text-blue-900 text-sm font-medium">
+                  Darah tersedia dari Allocation dan Free Stock
+                </p>
+                <p className="text-blue-700 text-xs mt-1">
+                  Kedua sumber akan diambil bersamaan untuk melengkapi kebutuhan.
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Request Info */}
-        <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-xl p-4 mb-6">
+        <div className="bg-gradient-to-r from-red-50 to-rose-50 border border-red-200 rounded-xl p-4 mb-6">
           <h4 className="text-sm font-semibold text-gray-700 mb-3">Detail Permintaan</h4>
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -243,8 +244,9 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {allocLoading ? (
-            <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600 text-sm">
-              ⏳ Loading data allocation & free stock...
+            <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-600 text-sm flex items-center justify-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-gray-500" />
+              <span>Memuat data allocation & free stock...</span>
             </div>
           ) : allocations.length === 0 && freeStock.length === 0 ? (
             <div className="p-4 bg-red-50 rounded-lg border border-red-200 text-center">
@@ -256,12 +258,15 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
               {/* ALLOCATIONS SECTION */}
               {allocations.length > 0 && (
                 <div className="space-y-3 border-b pb-5">
-                  <h4 className="text-sm font-semibold text-gray-700">📦 Allocation (Darah Tersedia)</h4>
+                  <div className="flex items-center gap-2">
+                    <Package size={16} className="text-gray-700" />
+                    <h4 className="text-sm font-semibold text-gray-700">Allocation (Darah Tersedia)</h4>
+                  </div>
                   
                   {allocations.length > 0 && summary && summary.total_from_allocation === quantity && (
                     <div className="p-3 bg-green-50 border border-green-300 rounded-lg">
                       <p className="text-green-700 text-sm font-semibold">
-                        ✅ Allocation sudah cukup!
+                        <span className="inline-flex items-center gap-1"><Check size={14} className="text-green-700" /> Allocation sudah cukup</span>
                       </p>
                       <p className="text-green-600 text-xs mt-1">
                         Hanya perlu allocation, tidak memerlukan free stock.
@@ -280,7 +285,7 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
                             <p className="text-xs text-gray-600">Kadaluarsa: {alloc.expiry_date}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-2xl font-bold text-primary">{allocationQty[alloc.allocation_id] || 0}</p>
+                            <p className="text-2xl font-bold text-green-700">{allocationQty[alloc.allocation_id] || 0}</p>
                             <p className="text-xs text-gray-500">dari {alloc.quantity_pending || alloc.quantity_allocated} kantong</p>
                           </div>
                         </div>
@@ -303,14 +308,15 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
               {(freeStock || []).length > 0 && totalAllocationSelected < quantity && (
                 <div className="space-y-3 border-b pb-5">
                   <div className="flex items-center gap-2">
-                    <h4 className="text-sm font-semibold text-gray-700">📋 Free Stock (Stok Tambahan)</h4>
+                    <ClipboardList size={16} className="text-gray-700" />
+                    <h4 className="text-sm font-semibold text-gray-700">Free Stock (Stok Tambahan)</h4>
                     <AlertCircle size={16} className="text-amber-500" />
                   </div>
                   
                   {useFreeStock && (
                     <div className="p-3 bg-amber-50 border border-amber-300 rounded-lg">
                       <p className="text-amber-700 text-sm font-semibold">
-                        ⚠️ Free stock akan diambil untuk melengkapi kebutuhan
+                        Free stock akan diambil untuk melengkapi kebutuhan
                       </p>
                       <p className="text-amber-600 text-xs mt-1">
                         Masih dibutuhkan: {quantity - totalAllocationSelected} kantong
@@ -370,13 +376,13 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
                     </div>
                   </div>
                   {totalSelected < quantity && (
-                    <p className="text-sm text-yellow-700 font-semibold">
-                      ⚠️ Masih kurang {quantity - totalSelected} kantong
+                    <p className="text-sm text-yellow-700 font-semibold inline-flex items-center gap-1">
+                      <AlertCircle size={14} className="text-yellow-700" /> Masih kurang {quantity - totalSelected} kantong
                     </p>
                   )}
                   {totalSelected >= quantity && (
-                    <p className="text-sm text-green-700 font-semibold">
-                      ✓ Sudah cukup untuk melengkapi kebutuhan
+                    <p className="text-sm text-green-700 font-semibold inline-flex items-center gap-1">
+                      <Check size={14} className="text-green-700" /> Sudah cukup untuk melengkapi kebutuhan
                     </p>
                   )}
                 </div>
@@ -437,7 +443,7 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-2 sticky bottom-0 bg-white pb-4">
             <button
               type="button"
               onClick={handleClose}
@@ -456,11 +462,12 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
           </div>
         </form>
 
-        {/* Footer Note */}
-        <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-xs text-yellow-800">
-            <span className="font-semibold">Catatan:</span> Sistem akan menghasilkan kode unik yang akan diberikan kepada Rumah Sakit untuk verifikasi saat pengambilan darah.
-          </p>
+          {/* Footer Note */}
+          <div className="p-6 border-t bg-yellow-50 border-yellow-200">
+            <p className="text-xs text-yellow-800">
+              <span className="font-semibold">Catatan:</span> Sistem akan menghasilkan kode unik untuk verifikasi saat pengambilan darah.
+            </p>
+          </div>
         </div>
       </div>
     </div>

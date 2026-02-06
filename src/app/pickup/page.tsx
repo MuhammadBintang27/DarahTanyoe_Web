@@ -215,21 +215,25 @@ const PickUp: React.FC = () => {
       <Toaster position="top-right" />
       <div className="flex flex-col gap-6 p-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="mb-6">
           <h2 className="font-bold text-3xl text-white">Jadwal Pick Up</h2>
+          <p className="mt-2 text-lg text-white font-semibold">Kelola jadwal pengambilan darah</p>
         </div>
 
         {/* Search Box - For PMI */}
         {user?.institution_type === 'pmi' && (
-          <div className="bg-white rounded-xl shadow-lg p-4">
+          <div className="bg-white rounded-xl shadow-lg p-5 border border-gray-200">
+            <label className="block text-sm font-bold text-gray-900 mb-3">
+              Konfirmasi Cepat
+            </label>
             <div className="relative">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
-                placeholder="Masukkan kode unik (8 karakter) untuk konfirmasi cepat..."
+                placeholder="Masukkan kode unik (8 karakter)..."
                 maxLength={8}
-                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary transition-colors uppercase tracking-wider font-mono"
+                className="w-full bg-gray-50 border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors uppercase tracking-wider font-mono text-lg font-bold"
               />
               {searchQuery && (
                 <button
@@ -237,40 +241,39 @@ const PickUp: React.FC = () => {
                     setSearchQuery("");
                     setPrefilledCode("");
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   <X size={20} />
                 </button>
               )}
             </div>
-            <p className="text-xs text-gray-500 mt-2">
-              ⚡ Ketik kode unik 8 karakter → Sistem otomatis membuka konfirmasi!
+            <p className="text-xs text-gray-600 mt-2 flex items-center gap-1">
+              <span className="text-blue-600 font-medium">💡</span>
+              Ketik 8 karakter untuk membuka konfirmasi otomatis
             </p>
           </div>
         )}
 
         {/* Filter Section */}
-        <div className="bg-white rounded-xl shadow-lg p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Filter Jadwal</h3>
+        <div className="bg-white rounded-xl shadow-lg p-5 border border-gray-200">
+          <h3 className="text-sm font-bold text-gray-900 mb-4">Filter</h3>
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
             {/* Date Filter - For all users */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2 flex items-center gap-2">
-                <Calendar size={14} className="text-gray-500" />
+              <label className="block text-xs font-semibold text-gray-700 mb-2">
                 Tanggal Pickup
               </label>
               <input
                 type="date"
                 value={dateFilter}
                 onChange={(e) => setDateFilter(e.target.value)}
-                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-2.5 text-gray-800 focus:outline-none focus:border-primary transition-colors text-sm"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm"
               />
             </div>
 
             {/* Patient Filter - For all users */}
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-2 flex items-center gap-2">
-                <Package size={14} className="text-gray-500" />
+              <label className="block text-xs font-semibold text-gray-700 mb-2">
                 Nama Pasien
               </label>
               <input
@@ -278,20 +281,20 @@ const PickUp: React.FC = () => {
                 value={patientFilter}
                 onChange={(e) => setPatientFilter(e.target.value)}
                 placeholder="Cari nama pasien..."
-                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg px-4 py-2.5 text-gray-800 placeholder-gray-400 focus:outline-none focus:border-primary transition-colors text-sm"
+                className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors text-sm"
               />
             </div>
           </div>
 
           {/* Reset Filter Button */}
           {(dateFilter || patientFilter) && (
-            <div className="mt-3 flex justify-end">
+            <div className="mt-4 flex justify-end">
               <button
                 onClick={() => {
                   setDateFilter("");
                   setPatientFilter("");
                 }}
-                className="text-xs text-primary hover:text-primary/80 font-medium flex items-center gap-1 bg-primary/5 hover:bg-primary/10 px-3 py-1.5 rounded-lg transition-colors"
+                className="text-xs text-blue-600 hover:text-blue-700 font-semibold flex items-center gap-1 bg-blue-50 hover:bg-blue-100 px-3 py-2 rounded-lg transition-colors border border-blue-200"
               >
                 <X size={14} />
                 Reset Filter
@@ -301,10 +304,10 @@ const PickUp: React.FC = () => {
         </div>
 
         {/* Filter Tabs */}
-        <div className="bg-white rounded-xl shadow-lg p-2 flex gap-2">
+        <div className="bg-white rounded-xl shadow-lg p-2 flex gap-2 border border-gray-200">
           <button
             onClick={() => setFilter("all")}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
+            className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all ${
               filter === "all"
                 ? "bg-primary text-white"
                 : "text-gray-600 hover:bg-gray-100"
@@ -314,7 +317,7 @@ const PickUp: React.FC = () => {
           </button>
           <button
             onClick={() => setFilter("scheduled")}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
+            className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all ${
               filter === "scheduled"
                 ? "bg-primary text-white"
                 : "text-gray-600 hover:bg-gray-100"
@@ -324,7 +327,7 @@ const PickUp: React.FC = () => {
           </button>
           <button
             onClick={() => setFilter("completed")}
-            className={`flex-1 px-4 py-2 rounded-lg font-semibold transition-all ${
+            className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all ${
               filter === "completed"
                 ? "bg-primary text-white"
                 : "text-gray-600 hover:bg-gray-100"
@@ -336,14 +339,17 @@ const PickUp: React.FC = () => {
 
         {/* Schedule List */}
         {loading ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <p className="text-gray-500">Memuat jadwal...</p>
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-200">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600 font-medium">Memuat jadwal...</p>
           </div>
         ) : filteredSchedules.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <Package size={64} className="text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg mb-2">Belum ada jadwal pickup</p>
-            <p className="text-gray-400 text-sm">
+          <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-gray-200">
+            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Package size={32} className="text-gray-400" />
+            </div>
+            <p className="text-gray-900 text-lg font-bold mb-2">Belum Ada Jadwal</p>
+            <p className="text-gray-600 text-sm">
               Jadwal pickup akan muncul setelah permintaan darah disetujui oleh PMI
             </p>
           </div>
@@ -352,24 +358,28 @@ const PickUp: React.FC = () => {
             {filteredSchedules.map((schedule) => (
               <div
                 key={schedule.id}
-                className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all"
+                className="bg-white rounded-xl shadow-lg p-6 border border-gray-200 hover:shadow-xl transition-all"
               >
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start mb-5">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-bold text-gray-800">
+                      <h3 className="text-xl font-bold text-gray-900">
                         {schedule.request.patient_name}
                       </h3>
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                          schedule.status
-                        )}`}
+                        className={`px-3 py-1 rounded-lg text-xs font-semibold border ${
+                          schedule.status === 'completed'
+                            ? 'bg-green-50 text-green-700 border-green-200'
+                            : schedule.status === 'scheduled'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200'
+                            : 'bg-red-50 text-red-700 border-red-200'
+                        }`}
                       >
                         {getStatusLabel(schedule.status)}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-500">
-                      ID Permintaan: #{schedule.request_id.substring(0, 8)}
+                    <p className="text-xs text-gray-600 font-medium">
+                      ID: {schedule.request_id.substring(0, 8)}
                     </p>
                   </div>
 
@@ -377,17 +387,17 @@ const PickUp: React.FC = () => {
                   {user?.institution_type === 'pmi' && schedule.status === "scheduled" && (
                     <button
                       onClick={() => handleConfirmClick(schedule)}
-                      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 font-semibold transition-all"
+                      className="bg-green-50 hover:bg-green-100 text-green-700 px-4 py-2 rounded-lg flex items-center gap-2 font-semibold transition-all border border-green-200"
                     >
                       <CheckCircle size={18} />
-                      Konfirmasi Selesai
+                      Konfirmasi
                     </button>
                   )}
                 </div>
 
                 {/* Unique Code - Only for Hospital */}
                 {user?.institution_type === 'hospital' && (
-                  <div className="mb-4 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border-2 border-primary/20">
+                  <div className="mb-5 p-4 bg-gradient-to-r from-primary/10 to-secondary/10 rounded-lg border-2 border-primary/20">
                     <p className="text-xs text-gray-600 font-medium mb-2">
                       Kode Unik Pickup
                     </p>
@@ -410,71 +420,55 @@ const PickUp: React.FC = () => {
                 )}
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="flex items-start gap-3">
-                    <Calendar className="text-primary mt-1" size={20} />
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">
-                        Tanggal
-                      </p>
-                      <p className="text-sm text-gray-800 font-semibold">
-                        {formatDate(schedule.pickup_date)}
-                      </p>
-                    </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs text-gray-600 font-semibold mb-1">
+                      Tanggal
+                    </p>
+                    <p className="text-sm text-gray-900 font-bold">
+                      {formatDate(schedule.pickup_date)}
+                    </p>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <Clock className="text-primary mt-1" size={20} />
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Waktu</p>
-                      <p className="text-sm text-gray-800 font-semibold">
-                        {formatTime(schedule.pickup_time)} WIB
-                      </p>
-                    </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs text-gray-600 font-semibold mb-1">Waktu</p>
+                    <p className="text-sm text-gray-900 font-bold">
+                      {formatTime(schedule.pickup_time)} WIB
+                    </p>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <Droplet className="text-primary mt-1" size={20} />
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">
-                        Darah
-                      </p>
-                      <p className="text-sm text-gray-800 font-semibold">
-                        {schedule.request.blood_type} -{" "}
-                        {schedule.request.quantity} Kantong
-                      </p>
-                    </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs text-gray-600 font-semibold mb-1">
+                      Darah
+                    </p>
+                    <p className="text-sm text-gray-900 font-bold">
+                      {schedule.request.blood_type} • {schedule.request.quantity} Kantong
+                    </p>
                   </div>
 
-                  <div className="flex items-start gap-3">
-                    <MapPin className="text-primary mt-1" size={20} />
-                    <div>
-                      <p className="text-xs text-gray-500 font-medium">Lokasi Pickup</p>
-                      <p className="text-sm text-gray-800 font-semibold">
-                        {schedule.pmi.institution_name}
-                      </p>
-                      <p className="text-xs text-gray-600">
-                        {schedule.pmi.address}
-                      </p>
-                    </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <p className="text-xs text-gray-600 font-semibold mb-1">Lokasi</p>
+                    <p className="text-sm text-gray-900 font-bold truncate" title={schedule.pmi.institution_name}>
+                      {schedule.pmi.institution_name}
+                    </p>
                   </div>
                 </div>
 
                 {schedule.notes && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                    <p className="text-xs text-gray-500 font-medium mb-1">
+                  <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-700 font-semibold mb-1">
                       Catatan dari PMI
                     </p>
-                    <p className="text-sm text-gray-700">{schedule.notes}</p>
+                    <p className="text-sm text-gray-900">{schedule.notes}</p>
                   </div>
                 )}
 
                 {schedule.status === "completed" && schedule.confirmed_at && (
-                  <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
-                    <p className="text-xs text-green-600 font-medium mb-1">
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <p className="text-xs text-green-700 font-bold mb-1">
                       ✓ Pickup Selesai
                     </p>
-                    <p className="text-xs text-gray-600">
-                      Dikonfirmasi pada: {formatDate(schedule.confirmed_at)} pukul {formatTime(schedule.confirmed_at)}
+                    <p className="text-xs text-gray-700">
+                      Dikonfirmasi: {formatDate(schedule.confirmed_at)}
                     </p>
                   </div>
                 )}
