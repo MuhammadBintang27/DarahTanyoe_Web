@@ -98,6 +98,20 @@ export const RequestTable: React.FC<RequestTableProps> = ({
     }
   }, [data, userRole]);
 
+  // Show loading state
+  if (loading.dataLoading) {
+    return (
+      <div className="bg-white rounded-xl shadow-xl overflow-hidden">
+        <div className="px-6 py-12 text-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <p className="text-gray-600 font-medium">Memuat data permintaan...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (data.length === 0) {
     return (
       <div className="bg-white rounded-xl shadow-xl overflow-hidden">

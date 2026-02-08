@@ -30,11 +30,6 @@ const Permintaan: React.FC = () => {
   // Determine user role from institution_type (hospital or pmi)
   const userRole = user?.institution_type || 'hospital';
   
-  // Custom hooks for data fetching
-  const { data, refetch } = useBloodRequests(user?.id, userRole);
-  const { partners } = usePartners();
-  const { bloodStock } = useBloodStock(userRole === 'pmi' ? user?.id : undefined);
-
   // State management
   const [filters, setFilters] = useState<FilterState>({
     date: "",
@@ -42,6 +37,22 @@ const Permintaan: React.FC = () => {
     location: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Custom hooks for data fetching with pagination and filters
+  const { data, pagination, loading: dataLoading, refetch } = useBloodRequests(
+    user?.id, 
+    userRole, 
+    currentPage, 
+    ITEMS_PER_PAGE,
+    filters
+  );
+  
+  // For Hospital: show PMI partners (where they request blood TO)
+  // For PMI: show Hospital requesters (where requests come FROM)
+  const { partners } = usePartners(userRole === 'hospital' ? 'pmi' : 'hospital');
+  const { bloodStock } = useBloodStock(userRole === 'pmi' ? user?.id : undefined);
+
+  // State management
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [showRejectModal, setShowRejectModal] = useState<string | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -50,22 +61,14 @@ const Permintaan: React.FC = () => {
   const [selectedRequest, setSelectedRequest] = useState<BloodRequest | null>(null);
   const [requestAllocations, setRequestAllocations] = useState<Record<string, any>>({}); // Cache allocations
 
-  // Filter data
-  const filteredData = data.filter((row) => {
-    if (filters.bloodType && row.blood_type !== filters.bloodType) return false;
-    if (filters.location && row.partners?.name !== filters.location) return false;
-    if (filters.date) {
-      const rowDate = new Date(row.created_at).toISOString().split("T")[0];
-      if (rowDate !== filters.date) return false;
-    }
-    return true;
-  });
+  // Use data directly from backend (already filtered and paginated)
+  const currentData = data;
 
-  // Pagination
-  const totalPages = Math.ceil(filteredData.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const currentData = filteredData.slice(startIndex, endIndex);
+  // Reset to page 1 when filters change
+  const handleFilterChange = (newFilters: FilterState) => {
+    setFilters(newFilters);
+    setCurrentPage(1);
+  };
 
   // Handlers
   const handleApprove = async (requestId: string) => {
@@ -137,7 +140,7 @@ const Permintaan: React.FC = () => {
   };
 
   const handleResetFilters = () => {
-    setFilters({ date: "", bloodType: "", location: "" });
+    setFilters({ date: "", bloodType: "", location: "", status: undefined });
     setCurrentPage(1);
   };
 
@@ -306,13 +309,19 @@ const Permintaan: React.FC = () => {
       <div className="flex flex-col gap-6 p-6">
         {/* Header */}
         <div className="flex justify-between items-center">
-          <h2 className="font-bold text-3xl text-white">Daftar Permintaan</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="font-bold text-3xl text-white">Daftar Permintaan</h2>
+            {dataLoading && (
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+            )}
+          </div>
           
           {/* Show Create Button only for Hospital role */}
           {userRole === 'hospital' && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200"
+              disabled={dataLoading}
+              className="bg-secondary hover:bg-secondary/90 text-white font-semibold px-6 py-3 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Plus size={20} />
               Buat Permintaan
@@ -324,17 +333,19 @@ const Permintaan: React.FC = () => {
         <FilterSection
           filters={filters}
           partners={partners}
-          onFilterChange={setFilters}
+          onFilterChange={handleFilterChange}
           onReset={handleResetFilters}
+          disabled={dataLoading}
+          userRole={userRole}
         />
 
         {/* Table Section */}
         <div>
           <RequestTable
             data={currentData}
-            loading={loading}
-            currentPage={currentPage}
-            itemsPerPage={ITEMS_PER_PAGE}
+            loading={{ ...loading, dataLoading }}
+            currentPage={pagination.currentPage}
+            itemsPerPage={pagination.itemsPerPage}
             userRole={userRole}
             bloodStock={bloodStock}
             onApprove={userRole === 'pmi' ? handleApprove : undefined}
@@ -344,14 +355,16 @@ const Permintaan: React.FC = () => {
             onCreateCampaign={userRole === 'pmi' ? handleCreateCampaign : undefined}
           />
 
-          {/* Pagination */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={filteredData.length}
-            itemsPerPage={ITEMS_PER_PAGE}
-            onPageChange={setCurrentPage}
-          />
+          {/* Pagination - Only show when not loading and has data */}
+          {!dataLoading && currentData.length > 0 && pagination.totalPages > 1 && (
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              itemsPerPage={pagination.itemsPerPage}
+              onPageChange={setCurrentPage}
+            />
+          )}
         </div>
 
         {/* Request Detail Modal */}

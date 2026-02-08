@@ -3,8 +3,37 @@ import axios from 'axios';
 import { BloodRequest, Partner } from '@/types/bloodRequest';
 import toast from 'react-hot-toast';
 
-export const useBloodRequests = (userId: string | undefined, userRole: 'hospital' | 'pmi') => {
+interface PaginationData {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+interface FilterParams {
+  bloodType?: string;
+  location?: string;
+  date?: string;
+}
+
+export const useBloodRequests = (
+  userId: string | undefined, 
+  userRole: 'hospital' | 'pmi', 
+  page: number = 1, 
+  limit: number = 10,
+  filters?: FilterParams
+) => {
   const [data, setData] = useState<BloodRequest[]>([]);
+  const [pagination, setPagination] = useState<PaginationData>({
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
   const [loading, setLoading] = useState(false);
 
   const fetchRequests = async () => {
@@ -15,9 +44,34 @@ export const useBloodRequests = (userId: string | undefined, userRole: 'hospital
       const endpoint = userRole === 'pmi' 
         ? `${process.env.NEXT_PUBLIC_API_URL}/bloodReq/partner/${userId}`
         : `${process.env.NEXT_PUBLIC_API_URL}/bloodReq/${userId}`;
+      
+      // Build query params with filters
+      const params: any = { page, limit };
+      if (filters?.bloodType) params.bloodType = filters.bloodType;
+      if (filters?.date) params.date = filters.date;
+      if (filters?.status) params.status = filters.status;
+      
+      // For hospital view, location filter means partnerId
+      // For PMI view, location filter means requesterId
+      if (filters?.location) {
+        if (userRole === 'hospital') {
+          params.partnerId = filters.location;
+        } else {
+          params.requesterId = filters.location;
+        }
+      }
         
-      const response = await axios.get(endpoint);
+      const response = await axios.get(endpoint, { params });
+      
       setData(response.data.data || []);
+      setPagination(response.data.pagination || {
+        currentPage: 1,
+        totalPages: 1,
+        totalItems: 0,
+        itemsPerPage: 10,
+        hasNextPage: false,
+        hasPrevPage: false
+      });
     } catch (error) {
       console.error('Error fetching requests:', error);
       toast.error('Gagal memuat data permintaan');
@@ -29,12 +83,12 @@ export const useBloodRequests = (userId: string | undefined, userRole: 'hospital
 
   useEffect(() => {
     fetchRequests();
-  }, [userId, userRole]);
+  }, [userId, userRole, page, limit, filters?.bloodType, filters?.location, filters?.date, filters?.status]);
 
-  return { data, loading, refetch: fetchRequests };
+  return { data, pagination, loading, refetch: fetchRequests };
 };
 
-export const usePartners = () => {
+export const usePartners = (institutionType?: 'pmi' | 'hospital') => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -46,7 +100,13 @@ export const usePartners = () => {
       // Map institutions data to Partner interface
       const institutions = response.data.data || [];
       const mappedPartners = institutions
-        .filter((inst: any) => inst.institution_type === 'pmi') // Only PMI institutions
+        .filter((inst: any) => {
+          // If institutionType specified, filter by it. Otherwise show all.
+          if (institutionType) {
+            return inst.institution_type === institutionType;
+          }
+          return true;
+        })
         .map((inst: any) => ({
           id: inst.id,
           name: inst.institution_name,
@@ -67,7 +127,7 @@ export const usePartners = () => {
 
   useEffect(() => {
     fetchPartners();
-  }, []);
+  }, [institutionType]);
 
   return { partners, loading };
 };
