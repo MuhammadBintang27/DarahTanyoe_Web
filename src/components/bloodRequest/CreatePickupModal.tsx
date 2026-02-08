@@ -446,7 +446,7 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
             <button
               type="submit"
               disabled={loading || !canSubmit}
-              className="flex-1 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 disabled:bg-gray-300 shadow-md"
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 disabled:bg-gray-300 shadow-md"
             >
               {loading ? "Membuat Jadwal..." : "Buat Jadwal Pickup"}
             </button>

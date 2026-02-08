@@ -201,7 +201,7 @@ export default function PemenuhanPage() {
           {/* Summary Section */}
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Ringkasan</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="text-center p-4 bg-blue-50 rounded-lg">
                 <p className="text-2xl font-bold text-blue-600">{filteredFulfillments.length}</p>
                 <p className="text-sm text-gray-600">Total Pemenuhan</p>
@@ -217,12 +217,6 @@ export default function PemenuhanPage() {
                   {filteredFulfillments.filter((f) => f.status === 'in_progress').length}
                 </p>
                 <p className="text-sm text-gray-600">Dalam Proses</p>
-              </div>
-              <div className="text-center p-4 bg-purple-50 rounded-lg">
-                <p className="text-2xl font-bold text-purple-600">
-                  {filteredFulfillments.filter((f) => f.status === 'donors_found').length}
-                </p>
-                <p className="text-sm text-gray-600">Pendonor Ditemukan</p>
               </div>
             </div>
           </div>

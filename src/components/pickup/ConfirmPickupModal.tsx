@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, Key, AlertCircle } from "lucide-react";
+import { X, AlertCircle } from "lucide-react";
 
 interface ConfirmPickupModalProps {
   isOpen: boolean;
@@ -75,10 +75,10 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-800">Konfirmasi Pickup</h3>
+          <h3 className="text-2xl font-bold text-gray-900">Konfirmasi Pickup</h3>
           <button
             onClick={handleClose}
             disabled={loading}
@@ -88,39 +88,24 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
           </button>
         </div>
 
-        {/* Info Box */}
-        <div className="bg-blue-50 border-l-4 border-blue-500 rounded-r-lg p-4 mb-6">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="text-blue-500 flex-shrink-0 mt-0.5" size={20} />
-            <div>
-              <p className="text-blue-900 text-sm font-medium">
-                Verifikasi Rumah Sakit
-              </p>
-              <p className="text-blue-700 text-xs mt-1">
-                Minta kode unik dari petugas rumah sakit untuk mengkonfirmasi pengambilan darah
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Pickup Info */}
-        <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-xl p-4 mb-6">
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-xs text-gray-500 mb-1">Rumah Sakit</p>
-              <p className="text-sm text-gray-800 font-semibold">{hospitalName}</p>
+              <p className="text-sm text-gray-900 font-medium">{hospitalName}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Pasien</p>
-              <p className="text-sm text-gray-800 font-semibold">{patientName}</p>
+              <p className="text-sm text-gray-900 font-medium">{patientName}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Golongan Darah</p>
-              <p className="text-sm text-gray-800 font-semibold">{bloodType}</p>
+              <p className="text-sm text-gray-900 font-medium">{bloodType}</p>
             </div>
             <div>
               <p className="text-xs text-gray-500 mb-1">Jumlah</p>
-              <p className="text-sm text-gray-800 font-semibold">{quantity} kantong</p>
+              <p className="text-sm text-gray-900 font-medium">{quantity} kantong</p>
             </div>
           </div>
         </div>
@@ -129,9 +114,8 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Unique Code Input */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-              <Key size={16} className="text-gray-500" />
-              Kode Unik dari Rumah Sakit *
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Kode Unik dari Rumah Sakit <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
@@ -141,7 +125,7 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
               placeholder="Masukkan 8 karakter"
               required
               disabled={loading}
-              className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-3 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:bg-gray-100 uppercase tracking-wider text-lg font-mono"
+              className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:bg-gray-100 uppercase tracking-wider text-lg font-mono"
             />
             {error && (
               <p className="mt-2 text-red-500 text-xs flex items-center gap-1">
@@ -150,37 +134,37 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
               </p>
             )}
             <p className="mt-2 text-gray-500 text-xs">
-              Kode akan diverifikasi untuk memastikan darah diberikan kepada rumah sakit yang benar
+              Minta kode unik dari petugas rumah sakit untuk verifikasi pengambilan darah
+            </p>
+          </div>
+
+          {/* Warning */}
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <p className="text-yellow-800 text-xs flex items-start gap-2">
+              <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
+              <span>Pastikan darah telah diserahkan sebelum konfirmasi. Tindakan ini tidak dapat dibatalkan.</span>
             </p>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-2">
             <button
               type="button"
               onClick={handleClose}
               disabled={loading}
-              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-3 rounded-lg transition-all disabled:opacity-50"
+              className="flex-1 px-4 py-2.5 text-gray-700 hover:bg-gray-100 border border-gray-300 rounded-lg font-medium transition-colors disabled:opacity-50"
             >
               Batal
             </button>
             <button
               type="submit"
               disabled={loading || !uniqueCode || uniqueCode.length !== 8}
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 rounded-lg transition-all disabled:opacity-50 disabled:from-gray-300 disabled:to-gray-300 shadow-md"
+              className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg font-medium disabled:opacity-50 transition-colors"
             >
               {loading ? "Memverifikasi..." : "Konfirmasi Pickup"}
             </button>
           </div>
         </form>
-
-        {/* Warning */}
-        <div className="mt-4 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-r-lg">
-          <p className="text-yellow-800 text-xs flex items-center gap-2">
-            <span className="text-yellow-600">⚠️</span>
-            Pastikan darah telah diserahkan sebelum konfirmasi. Tindakan ini tidak dapat dibatalkan.
-          </p>
-        </div>
       </div>
     </div>
   );

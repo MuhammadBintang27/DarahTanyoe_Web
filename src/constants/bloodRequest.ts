@@ -17,7 +17,7 @@ export const STATUS_MAP: Record<RequestStatus, StatusInfo> = {
     bgColor: 'bg-blue-100',
   },
   pickup_scheduled: {
-    label: 'Jadwal Pickup',
+    label: 'Menunggu Pickup',
     color: 'text-purple-800',
     bgColor: 'bg-purple-100',
   },
@@ -27,7 +27,7 @@ export const STATUS_MAP: Record<RequestStatus, StatusInfo> = {
     bgColor: 'bg-red-100',
   },
   ready: {
-    label: 'Siap',
+    label: 'Siap Dijadwalkan',
     color: 'text-cyan-800',
     bgColor: 'bg-cyan-100',
   },
