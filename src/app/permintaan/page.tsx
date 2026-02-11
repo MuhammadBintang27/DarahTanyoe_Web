@@ -271,7 +271,7 @@ const Permintaan: React.FC = () => {
       // Check if response is successful
       // Check if response is successful
       if (response.status === 200 || response.status === 201) {
-        toast.success("Campaign berhasil dibuat! Menemukan donor eligible.");
+        toast.success("Pemenuhan Darah berhasil dibuat! Menemukan donor eligible.");
         
         // Get fulfillment ID from response
         const fulfillmentId = response.data.fulfillment_id || response.data.data?.fulfillment_id;

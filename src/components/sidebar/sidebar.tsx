@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, NotebookPen, Plus, Info, TruckIcon, History, Users } from "lucide-react";
+import { LayoutDashboard, NotebookPen, Plus, Info, TruckIcon, History, Users, CalendarCheck } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import StokDarahIcon from "../icons/stokDarah";
@@ -30,6 +30,11 @@ export const Sidebar = () => {
       name: "Pemenuhan Darah",
       icon: () => <Users color="#9AA2AC" />,
       url: "/pemenuhan",
+    },
+    {
+      name: "Janji Donor",
+      icon: () => <CalendarCheck color="#9AA2AC" />,
+      url: "/janji-donor",
     },
     {
       name: "Stok Darah",
@@ -89,10 +94,7 @@ export const Sidebar = () => {
         <div className="w-full justify-center flex">
           <Image src="/images/logo.png" alt="logo" width={200} height={200} />
         </div>
-        <button className="bg-primary cursor-pointer flex gap-2 items-center justify-center rounded-2xl shadow-black/40 shadow-md w-full py-3 hover:scale-105 duration-200">
-          <p className="font-bold text-white">Tambah Event</p>
-          <Plus color="white" />
-        </button>
+        
         <div className="flex flex-col gap-8">
           {menu
             .filter((item) => item.url)
