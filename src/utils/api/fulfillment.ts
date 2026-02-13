@@ -23,7 +23,7 @@ import {
   FulfillmentStats,
 } from '@/types/fulfillment';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
 // Create axios instance with default config
 const apiClient = axios.create({

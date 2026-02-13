@@ -48,7 +48,6 @@ export function useFulfillmentStats(
     const progressPercentage = Math.min(quantityProgress, 100);
 
     const isCompleted = fulfillment.status === 'fulfilled' ||
-               fulfillment.status === 'completed' ||
                fulfillment.quantity_collected >= fulfillment.quantity_needed;
 
     const isCancelled = fulfillment.status === 'cancelled';
