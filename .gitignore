@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# lock files (keep only npm)
+yarn.lock
+
 # testing
 /coverage
 
