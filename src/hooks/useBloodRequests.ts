@@ -16,6 +16,7 @@ interface FilterParams {
   bloodType?: string;
   location?: string;
   date?: string;
+  status?: string;
 }
 
 export const useBloodRequests = (
@@ -143,7 +144,17 @@ export const useBloodStock = (userId: string | undefined) => {
       setLoading(true);
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/partners/${userId}`);
       const stockData = response.data.data?.blood_stock || [];
-      setBloodStock(stockData);
+      
+      // Aggregate quantities for each blood type (multiple entries possible)
+      const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+      const aggregatedStock = bloodTypes.map(type => {
+        const totalQuantity = stockData
+          .filter((s: any) => s.blood_type === type)
+          .reduce((sum: number, stock: any) => sum + (stock.quantity || 0), 0);
+        return { blood_type: type, quantity: totalQuantity };
+      });
+      
+      setBloodStock(aggregatedStock);
     } catch (error) {
       console.error('Error fetching blood stock:', error);
       setBloodStock([]);

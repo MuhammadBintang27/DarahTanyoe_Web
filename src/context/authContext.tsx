@@ -108,9 +108,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
 
-    // Small delay to ensure DOM is ready
-    const timer = setTimeout(initAuth, 100);
-    return () => clearTimeout(timer);
+    // Initialize immediately - no delay needed
+    initAuth();
   }, [initialized]);
 
   // Handle navigation based on auth status

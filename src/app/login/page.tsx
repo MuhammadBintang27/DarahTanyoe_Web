@@ -18,13 +18,26 @@ const LoginContent = () => {
   const router = useRouter();
   const { login, checkAuthStatus } = useAuth();
 
-  // Check if already logged in
+  // Check if already logged in and redirect to specific dashboard
   useEffect(() => {
     const isLoggedIn = checkAuthStatus();
-    console.log('[LoginPage] Initial auth check:', isLoggedIn);
-
     if (isLoggedIn) {
-      console.log('[LoginPage] Already logged in, redirecting to dashboard');
+      try {
+        const userData = localStorage.getItem('user_data');
+        if (userData) {
+          const user = JSON.parse(userData);
+          const targetPath = user.institution_type === 'hospital' ? '/hospital' 
+                          : user.institution_type === 'pmi' ? '/pmi'
+                          : user.user_type === 'donor' ? '/donor' 
+                          : '/';
+          console.log('[LoginPage] Already logged in, redirecting to:', targetPath);
+          router.replace(targetPath);
+          return;
+        }
+      } catch (e) {
+        console.error('[LoginPage] Error parsing user data:', e);
+      }
+      // Fallback to home
       router.replace("/");
     }
   }, [checkAuthStatus, router]);
@@ -55,8 +68,14 @@ const LoginContent = () => {
       if (response.data.status === 'SUCCESS') {
         const { session, institution } = response.data;
         login(institution, session);
-        console.log('[LoginPage] Login successful, redirecting to dashboard');
-        router.replace("/");
+        
+        // Direct redirect to specific dashboard based on role
+        const targetPath = institution.institution_type === 'hospital' ? '/hospital' 
+                        : institution.institution_type === 'pmi' ? '/pmi'
+                        : institution.user_type === 'donor' ? '/donor' 
+                        : '/';
+        console.log('[LoginPage] Login successful, redirecting to:', targetPath);
+        router.replace(targetPath);
       } else {
         setError(response.data.message || "Login failed");
       }

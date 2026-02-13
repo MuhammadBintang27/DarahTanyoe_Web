@@ -22,8 +22,6 @@ import { FilterState, CreateRequestForm, BloodRequest } from "@/types/bloodReque
 import { formatDateToAPI } from "@/utils/formatters";
 import toast from "react-hot-toast";
 
-const ITEMS_PER_PAGE = 10;
-
 const Permintaan: React.FC = () => {
   const { user } = useAuth();
   
@@ -37,13 +35,14 @@ const Permintaan: React.FC = () => {
     location: "",
   });
   const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   
   // Custom hooks for data fetching with pagination and filters
   const { data, pagination, loading: dataLoading, refetch } = useBloodRequests(
     user?.id, 
     userRole, 
     currentPage, 
-    ITEMS_PER_PAGE,
+    pageSize,
     filters
   );
   
@@ -67,6 +66,16 @@ const Permintaan: React.FC = () => {
   // Reset to page 1 when filters change
   const handleFilterChange = (newFilters: FilterState) => {
     setFilters(newFilters);
+    setCurrentPage(1);
+  };
+
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
     setCurrentPage(1);
   };
 
@@ -355,14 +364,18 @@ const Permintaan: React.FC = () => {
             onCreateCampaign={userRole === 'pmi' ? handleCreateCampaign : undefined}
           />
 
-          {/* Pagination - Only show when not loading and has data */}
-          {!dataLoading && currentData.length > 0 && pagination.totalPages > 1 && (
+          {/* Pagination - Show if not loading and have data */}
+          {!dataLoading && currentData.length > 0 && (
             <Pagination
-              currentPage={pagination.currentPage}
+              currentPage={currentPage}
               totalPages={pagination.totalPages}
               totalItems={pagination.totalItems}
-              itemsPerPage={pagination.itemsPerPage}
-              onPageChange={setCurrentPage}
+              itemsPerPage={pageSize}
+              dataLength={currentData.length}
+              hasPrevPage={pagination.hasPrevPage}
+              hasNextPage={pagination.hasNextPage}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
             />
           )}
         </div>

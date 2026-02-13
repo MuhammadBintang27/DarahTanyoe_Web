@@ -163,8 +163,9 @@ export default function VerifikasiPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 max-w-7xl mx-auto">
       <Toaster position="top-right" />
+      
       {/* Header */}
       <div className="mb-6">
         <button
@@ -174,22 +175,23 @@ export default function VerifikasiPage() {
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Kembali
+          Kembali ke Detail Pemenuhan
         </button>
-        <h1 className="text-3xl font-bold text-white">Verifikasi Donor</h1>
-        <p className="mt-2 text-lg text-white font-semibold mb-6">Verifikasi kode donor dan proses donasi darah</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Verifikasi Donor</h1>
+        <p className="text-white/90">Verifikasi kode unik donor dan selesaikan proses donasi darah</p>
       </div>
 
-      {/* Form verifikasi selalu tampil */}
-      
-
-      
-
-
-      {/* Verifikasi Cepat (tanpa tombol, paste/Enter langsung proses) */}
-      <div className="bg-white rounded-xl shadow-lg p-5 border border-gray-200 mb-6">
-        <label className="block text-sm font-bold text-gray-900 mb-3">Verifikasi Cepat</label>
-        <div className="flex gap-2">
+      {/* Quick Verification Section */}
+      <div className="bg-white rounded-xl shadow-md p-6 mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Verifikasi Cepat</h2>
+            <p className="text-sm text-gray-600">Masukkan atau tempel kode unik donor</p>
+          </div>
+        </div>
+        
+        <div className="relative">
           <input
             type="text"
             value={quickCode}
@@ -199,75 +201,111 @@ export default function VerifikasiPage() {
                 handleVerify(quickCode.trim());
               }
             }}
-            placeholder="Masukkan kode unik (contoh: DN2602110907)"
-            className="flex-1 bg-gray-50 border-2 border-gray-300 rounded-lg px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors uppercase tracking-wider font-mono text-lg font-bold"
+            placeholder="Contoh: DN2602110907"
+            className="w-full bg-gray-50 border-2 border-gray-300 rounded-lg px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all uppercase tracking-wider font-mono text-lg font-semibold"
           />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
         </div>
-        <p className="text-xs text-gray-600 mt-2">Tempel kode atau tekan Enter untuk verifikasi</p>
+        <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          Tempel kode atau tekan Enter untuk memverifikasi
+        </p>
       </div>
 
-      {/* Daftar konfirmasi (kecuali pending) selalu tampil */}
-      <div className="mt-6 space-y-4">
-        <div className="bg-white rounded-xl shadow-lg p-4 border border-gray-200">
-          
+      {/* Donor List Section */}
+      <div className="bg-white rounded-xl shadow-md p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Daftar Donor Terkonfirmasi</h2>
+            <p className="text-sm text-gray-600">Total {filtered.length} donor</p>
+          </div>
+        </div>
 
-          <div className="flex gap-2 mb-3">
+        {/* Search */}
+        <div className="mb-4">
+          <div className="relative">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari pendonor atau kode..."
-              className="flex-1 bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+              placeholder="Cari nama pendonor atau kode unik..."
+              className="w-full bg-gray-50 border border-gray-300 rounded-lg px-4 py-2.5 pl-10 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
             />
+            <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
+        </div>
 
-          {filtered.length === 0 ? (
-            <div className="text-center text-gray-600 text-sm py-6">Tidak ada data</div>
-          ) : (
-            <div className="grid grid-cols-1 gap-3">
-              {filtered.map((c) => (
-                <div key={c.id} className="bg-white rounded-lg shadow p-4 border border-gray-200">
-                  <div className="flex justify-between items-start mb-3">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <p className="text-sm font-bold text-gray-900">{c.donor?.full_name || 'Pendonor'}</p>
-                        <span className="px-2 py-0.5 rounded text-xs border bg-gray-50 text-gray-700">
-                          {(() => {
-                            const s = String(c.status);
-                            if (s === 'confirmed') return 'Terkonfirmasi';
-                            if (s.includes('verified')) return 'Kode Diverifikasi';
-                            if (s === 'completed') return 'Selesai';
-                            if (s === 'pending') return 'Menunggu';
-                            return s;
-                          })()}
-                        </span>
-                      </div>
-                      <p className="text-xs text-gray-600">Golongan Darah: <span className="font-medium">{c.donor?.blood_type || '-'}</span></p>
+        {/* Donor Cards */}
+        {filtered.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Tidak ada data</h3>
+            <p className="text-gray-600 text-sm">Belum ada donor yang terkonfirmasi</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filtered.map((c) => {
+              const status = String(c.status);
+              const isConfirmed = status === 'confirmed';
+              const isVerified = status.includes('verified');
+              const isCompleted = status === 'completed';
+              
+              const statusConfig = isCompleted 
+                ? { label: 'Selesai', color: 'bg-green-50 text-green-700 border-green-200' }
+                : isVerified
+                ? { label: 'Kode Diverifikasi', color: 'bg-amber-50 text-amber-700 border-amber-200' }
+                : isConfirmed
+                ? { label: 'Terkonfirmasi', color: 'bg-blue-50 text-blue-700 border-blue-200' }
+                : { label: status, color: 'bg-gray-50 text-gray-700 border-gray-200' };
+
+              return (
+                <div key={c.id} className="bg-gray-50 border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                  {/* Header */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="text-base font-bold text-gray-900 mb-1">{c.donor?.full_name || 'Pendonor'}</h3>
+                      <span className={`inline-block px-2 py-1 rounded-md text-xs font-medium border ${statusConfig.color}`}>
+                        {statusConfig.label}
+                      </span>
                     </div>
                     <div className="px-3 py-1.5 bg-primary/10 rounded-lg border border-primary/20">
-                      <span className="text-xs text-primary font-semibold">{c.donor?.blood_type || '-'}</span>
+                      <span className="text-sm font-bold text-primary">{c.donor?.blood_type || '-'}</span>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Kadaluarsa</p>
-                      <p className="text-xs text-gray-900">{c.code_expires_at ? new Date(c.code_expires_at).toLocaleString() : '-'}</p>
+                  {/* Info */}
+                  <div className="space-y-2 mb-3">
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Kadaluarsa: {c.code_expires_at ? new Date(c.code_expires_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : '-'}</span>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Dibuat</p>
-                      <p className="text-xs text-gray-900">{new Date(c.created_at).toLocaleString()}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-500 mb-1">Status</p>
-                      <p className="text-xs text-gray-900">{c.status}</p>
+                    <div className="flex items-center gap-2 text-xs text-gray-600">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      <span>Dibuat: {new Date(c.created_at).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })}</span>
                     </div>
                   </div>
 
-                  <div className="flex gap-2">
-                    {String(c.status) === 'confirmed' && (
+                  {/* Actions */}
+                  <div className="pt-3 border-t border-gray-200">
+                    {isConfirmed && (
                       <button
-                        className="px-3 py-1.5 rounded text-white text-xs bg-emerald-600 hover:bg-emerald-700"
+                        className="w-full px-3 py-2 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors"
                         onClick={() => {
                           if (c.unique_code) {
                             handleVerify(c.unique_code);
@@ -275,106 +313,136 @@ export default function VerifikasiPage() {
                             toast.error('Kode unik tidak tersedia');
                           }
                         }}
-                      >Verifikasi Kode</button>
+                      >
+                        Verifikasi Kode
+                      </button>
                     )}
-                    {String(c.status).includes('verified') && (
+                    
+                    {isVerified && (
                       <button
-                        className="px-3 py-1.5 rounded text-white text-xs bg-indigo-600 hover:bg-indigo-700"
+                        className="w-full px-3 py-2 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors"
                         onClick={() => {
                           setVerifiedDonor({ confirmation: c });
                           setConfirmationId(c.id);
                           setCompleteForm({ quantity: 1, notes: '', medical_notes: '' });
                           setShowCompleteModal(true);
                         }}
-                      >Selesaikan Donasi</button>
+                      >
+                        Selesaikan Donasi
+                      </button>
                     )}
-                    {String(c.status) === 'completed' && (
-                      <span className="px-3 py-1.5 rounded text-xs bg-gray-100 text-gray-600 border">Selesai</span>
+                    
+                    {isCompleted && (
+                      <div className="text-center py-2 px-3 rounded-lg bg-gray-100 border border-gray-200">
+                        <span className="text-sm font-medium text-gray-600">✓ Donasi Selesai</span>
+                      </div>
+                    )}
+                    
+                    {!isConfirmed && !isVerified && !isCompleted && (
+                      <div className="text-center py-2 px-3 rounded-lg bg-gray-50 border border-gray-200">
+                        <span className="text-sm font-medium text-gray-500">{statusConfig.label}</span>
+                      </div>
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Modal Selesaikan Donasi */}
       {showCompleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md border border-gray-200">
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-bold text-gray-900">Selesaikan Donasi</h3>
-              <p className="text-xs text-gray-600 mt-1">Jumlah kantong default 1</p>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-gray-200">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold text-gray-900">Selesaikan Donasi</h2>
+              <p className="text-sm text-gray-600 mt-1">Lengkapi informasi donasi darah</p>
             </div>
+
             <form onSubmit={handleCompleteDonation}>
-              <div className="p-4 space-y-4">
-                {/* Detail Pendonor sebelum penyelesaian */}
-                <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                  <p className="text-xs font-semibold text-gray-700 mb-2">Data Pendonor</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">Nama</p>
-                      <p className="text-sm font-semibold text-gray-900">{verifiedDonor?.confirmation?.donor?.full_name || verifiedDonor?.donor?.full_name || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">Nomor Telepon</p>
-                      <p className="text-sm font-semibold text-gray-900">{verifiedDonor?.confirmation?.donor?.phone_number || verifiedDonor?.donor?.phone_number || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">Golongan Darah</p>
-                      <p className="text-sm font-semibold text-gray-900">{verifiedDonor?.confirmation?.donor?.blood_type || verifiedDonor?.donor?.blood_type || 'N/A'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-600 mb-1">Status Konfirmasi</p>
-                      <p className="text-sm font-semibold text-gray-900">{String(verifiedDonor?.confirmation?.status || verifiedDonor?.status || '-')}</p>
-                    </div>
+              {/* Content */}
+              <div className="px-6 py-5 space-y-4">
+                {/* Donor Info */}
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-600">Pendonor</span>
+                    <span className="text-sm font-bold text-gray-900">{verifiedDonor?.confirmation?.donor?.full_name || verifiedDonor?.donor?.full_name || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-600">No. Telepon</span>
+                    <span className="text-sm font-semibold text-gray-900">{verifiedDonor?.confirmation?.donor?.phone_number || verifiedDonor?.donor?.phone_number || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-600">Golongan Darah</span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-sm font-bold text-primary">
+                      {verifiedDonor?.confirmation?.donor?.blood_type || verifiedDonor?.donor?.blood_type || 'N/A'}
+                    </span>
                   </div>
                 </div>
+
+                {/* Form Fields */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Jumlah Kantong Darah</label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Jumlah Kantong Darah <span className="text-red-500">*</span>
+                  </label>
                   <input
                     type="number"
                     min={1}
                     max={10}
                     value={completeForm.quantity}
                     onChange={(e) => setCompleteForm({ ...completeForm, quantity: parseInt(e.target.value) || 1 })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all"
+                    placeholder="Contoh: 1"
                     required
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Catatan Medis</label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Catatan Medis
+                  </label>
                   <textarea
                     rows={3}
                     value={completeForm.medical_notes}
                     onChange={(e) => setCompleteForm({ ...completeForm, medical_notes: e.target.value })}
-                    placeholder="Catatan pemeriksaan kesehatan, vital signs, dll..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                    placeholder="Catatan kondisi kesehatan donor, hasil pemeriksaan..."
                   />
                 </div>
+
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Catatan Tambahan</label>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Catatan Tambahan
+                  </label>
                   <textarea
-                    rows={3}
+                    rows={2}
                     value={completeForm.notes}
                     onChange={(e) => setCompleteForm({ ...completeForm, notes: e.target.value })}
-                    placeholder="Catatan tambahan tentang proses donasi..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all resize-none"
+                    placeholder="Catatan lainnya tentang proses donasi..."
                   />
                 </div>
               </div>
-              <div className="p-4 flex gap-3 border-t">
+
+              {/* Footer */}
+              <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
                 <button
                   type="button"
                   onClick={() => setShowCompleteModal(false)}
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
-                >Batal</button>
+                  className="flex-1 px-4 py-2.5 rounded-lg text-gray-700 text-sm font-medium bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                  disabled={loading}
+                >
+                  Batal
+                </button>
                 <button
                   type="submit"
                   disabled={loading || !confirmationId}
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >{loading ? 'Memproses...' : 'Selesaikan'}</button>
+                  className="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Memproses...' : 'Selesaikan Donasi'}
+                </button>
               </div>
             </form>
           </div>
@@ -382,45 +450,64 @@ export default function VerifikasiPage() {
       )}
       {/* Modal Verifikasi Kode (hasil verifikasi cepat atau dari daftar) */}
       {showVerifyModal && verifyResult && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md border border-gray-200">
-            <div className="p-4 border-b">
-              <h3 className="text-lg font-bold text-gray-900">Verifikasi Berhasil</h3>
-              <p className="text-xs text-gray-600 mt-1">Detail pendonor</p>
-            </div>
-            <div className="p-4 space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs font-medium text-gray-600 mb-1">Nama Pendonor</p>
-                  <p className="font-semibold text-gray-900">{verifyResult.confirmation?.donor?.full_name || verifyResult.donor?.full_name || 'N/A'}</p>
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-gray-200">
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-600 mb-1">Nomor Telepon</p>
-                  <p className="font-semibold text-gray-900">{verifyResult.confirmation?.donor?.phone_number || verifyResult.donor?.phone_number || 'N/A'}</p>
+                  <h2 className="text-xl font-bold text-gray-900">Verifikasi Berhasil</h2>
+                  <p className="text-sm text-gray-600">Data donor ditemukan</p>
                 </div>
-                <div>
-                  <p className="text-xs font-medium text-gray-600 mb-1">Golongan Darah</p>
-                  <p className="font-semibold text-gray-900">{verifyResult.confirmation?.donor?.blood_type || verifyResult.donor?.blood_type || 'N/A'}</p>
-                </div>
-                {/* Kode unik disembunyikan untuk tampilan PMI */}
               </div>
             </div>
-            <div className="p-4 flex gap-3 border-t">
+
+            {/* Content */}
+            <div className="px-6 py-5">
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+                  <span className="text-xs font-medium text-gray-600">Nama Pendonor</span>
+                  <span className="text-sm font-bold text-gray-900">{verifyResult.confirmation?.donor?.full_name || verifyResult.donor?.full_name || 'N/A'}</span>
+                </div>
+                <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+                  <span className="text-xs font-medium text-gray-600">No. Telepon</span>
+                  <span className="text-sm font-semibold text-gray-900">{verifyResult.confirmation?.donor?.phone_number || verifyResult.donor?.phone_number || 'N/A'}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-medium text-gray-600">Golongan Darah</span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-md bg-primary/10 border border-primary/20 text-sm font-bold text-primary">
+                    {verifyResult.confirmation?.donor?.blood_type || verifyResult.donor?.blood_type || 'N/A'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
               <button
                 type="button"
                 onClick={() => { setShowVerifyModal(false); setVerifyResult(null); }}
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50"
-              >Tutup</button>
+                className="flex-1 px-4 py-2.5 rounded-lg text-gray-700 text-sm font-medium bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+              >
+                Tutup
+              </button>
               {String(verifyResult.confirmation?.status) === 'confirmed' ? (
                 <button
                   type="button"
-                  className="flex-1 px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700"
+                  className="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors"
                   onClick={performVerification}
-                >Verifikasi Kode</button>
+                >
+                  Verifikasi Kode
+                </button>
               ) : (
                 <button
                   type="button"
-                  className="flex-1 px-4 py-2 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700"
+                  className="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors"
                   onClick={() => {
                     const confId = verifyResult.confirmation?.id || verifyResult.confirmation_id || confirmationId;
                     setConfirmationId(confId || null);
@@ -428,7 +515,9 @@ export default function VerifikasiPage() {
                     setShowVerifyModal(false);
                     setShowCompleteModal(true);
                   }}
-                >Selesaikan Donasi</button>
+                >
+                  Selesaikan Donasi
+                </button>
               )}
             </div>
           </div>

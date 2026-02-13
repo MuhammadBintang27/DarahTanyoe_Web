@@ -10,28 +10,29 @@ const Home = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && user) {
-      // Route ke dashboard yang sesuai dengan role
-      if (user.institution_type === 'hospital') {
-        router.replace('/hospital');
-      } else if (user.institution_type === 'pmi') {
-        router.replace('/pmi');
-      } else if (user.user_type === 'donor') {
-        router.replace('/donor');
+    if (!loading) {
+      if (user) {
+        // Route ke dashboard yang sesuai dengan role
+        if (user.institution_type === 'hospital') {
+          router.replace('/hospital');
+        } else if (user.institution_type === 'pmi') {
+          router.replace('/pmi');
+        } else if (user.user_type === 'donor') {
+          router.replace('/donor');
+        }
+      } else {
+        // No user data, redirect to login
+        router.replace('/login');
       }
     }
   }, [user, loading, router]);
 
   return (
     <ProtectedRoute>
-      <div className="w-full h-full flex items-center justify-center">
+      <div className="w-full h-full flex items-center justify-center min-h-screen bg-white">
         <div className="text-center">
-          <h2 className="font-bold text-3xl text-white mb-4">Loading Dashboard...</h2>
-          <div className="flex gap-2 justify-center">
-            <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-            <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            <div className="w-3 h-3 bg-white rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-          </div>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-white border-t-transparent"></div>
+          <p className="text-primary text-lg mt-4 font-medium">Memuat Dashboard...</p>
         </div>
       </div>
     </ProtectedRoute>

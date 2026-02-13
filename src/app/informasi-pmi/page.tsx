@@ -65,10 +65,11 @@ const InformasiPMI: React.FC = () => {
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
   const getStockQuantity = (bloodType: string): number => {
-    const stock = selectedPMIData?.blood_stock?.find(
-      (s) => s.blood_type === bloodType
-    );
-    return stock?.quantity || 0;
+    // Sum up ALL stocks for this blood type (there might be multiple entries)
+    const totalQuantity = selectedPMIData?.blood_stock
+      ?.filter((s) => s.blood_type === bloodType)
+      .reduce((sum, stock) => sum + (stock.quantity || 0), 0) || 0;
+    return totalQuantity;
   };
 
   const getStockColor = (quantity: number): string => {

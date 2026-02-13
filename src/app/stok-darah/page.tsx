@@ -57,13 +57,18 @@ const StokDarah: React.FC = () => {
 
       const stockData = response.data.data?.blood_stock || [];
       
-      // Ensure all blood types are represented
-      const completeStocks = bloodTypes.map((type) => {
-        const existing = stockData.find((s: any) => s.blood_type === type);
-        return existing || { blood_type: type, quantity: 0 };
+      // Aggregate quantities for each blood type (multiple entries possible)
+      const aggregatedStocks = bloodTypes.map((type) => {
+        const matchingStocks = stockData.filter((s: any) => s.blood_type === type);
+        const totalQuantity = matchingStocks.reduce((sum: number, stock: any) => sum + (stock.quantity || 0), 0);
+        return { 
+          blood_type: type, 
+          quantity: totalQuantity,
+          last_updated: matchingStocks[0]?.last_updated 
+        };
       });
 
-      setStocks(completeStocks);
+      setStocks(aggregatedStocks);
     } catch (error) {
       console.error("Error fetching blood stock:", error);
       toast.error("Gagal memuat data stok darah");

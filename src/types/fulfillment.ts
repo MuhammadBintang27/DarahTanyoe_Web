@@ -377,18 +377,24 @@ export interface FulfillmentFilters {
 }
 
 export interface PaginationParams {
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
+export interface PaginationMetadata {
   page: number;
   limit: number;
-  total_pages: number;
+  totalPages: number;
+  totalItems: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: PaginationMetadata;
 }
 
 // ========================================

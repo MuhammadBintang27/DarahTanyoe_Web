@@ -6,34 +6,23 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/authContext';
 
 const ProtectedRoute = ({ children }: { children: ReactNode }) => {
-  const { loading, checkAuthStatus } = useAuth();
+  const { checkAuthStatus } = useAuth();
   const router = useRouter();
 
   // Direct localStorage check that doesn't depend on state
   useEffect(() => {
-    // Double-check authentication directly from localStorage
+    // Quick check authentication directly from localStorage
     if (typeof window !== 'undefined') {
       const isAuthenticatedFromStorage = checkAuthStatus();
       
-      console.log('[ProtectedRoute] Direct storage check result:', isAuthenticatedFromStorage);
-      
       if (!isAuthenticatedFromStorage) {
-        console.log('[ProtectedRoute] No auth data in storage, redirecting to login');
+        console.log('[ProtectedRoute] No auth data, redirecting to login');
         router.replace('/login');
       }
     }
   }, [router, checkAuthStatus]);
 
-  // Show loading state when checking authentication
-  if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <div className="text-white text-xl">Loading...</div>
-      </div>
-    );
-  }
-
-  // The auth provider will handle redirection if not authenticated
+  // Render children immediately - auth provider handles the rest
   return <>{children}</>;
 };
 

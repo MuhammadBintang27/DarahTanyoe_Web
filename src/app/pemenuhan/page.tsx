@@ -6,13 +6,16 @@ import FulfillmentCard from '@/components/FulfillmentCard';
 import { useRouter } from 'next/navigation';
 import { FulfillmentFilters } from '@/types/fulfillment';
 import { useAuth } from '@/context/authContext';
+import { Pagination } from '@/components/common/Pagination';
 
 export default function PemenuhanPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { fulfillments, loading, error, fetchFulfillments } = useFulfillment();
+  const { fulfillments, loading, error, pagination, fetchFulfillments } = useFulfillment();
   const [filters, setFilters] = useState<FulfillmentFilters>({});
   const [patientNameFilter, setPatientNameFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   useEffect(() => {
     // Add pmi_id to filters if user is PMI
@@ -20,15 +23,26 @@ export default function PemenuhanPage() {
     if (user?.id && user?.institution_type === 'pmi') {
       filtersWithUser.pmi_id = user.id;
     }
-    fetchFulfillments(filtersWithUser);
-  }, [filters, user?.id, user?.institution_type, fetchFulfillments]);
+    fetchFulfillments(filtersWithUser, currentPage, pageSize);
+  }, [filters, user?.id, user?.institution_type, currentPage, pageSize, fetchFulfillments]);
 
   const handleFilterChange = (key: keyof FulfillmentFilters, value: any) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
+    setCurrentPage(1); // Reset to first page when filter changes
   };
 
   const clearFilters = () => {
     setFilters({});
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1); // Reset to first page when page size changes
   };
 
   // Filter fulfillments berdasarkan nama pasien
@@ -198,28 +212,20 @@ export default function PemenuhanPage() {
             )}
           </div>
 
-          {/* Summary Section */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Ringkasan</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">{filteredFulfillments.length}</p>
-                <p className="text-sm text-gray-600">Total Pemenuhan</p>
-              </div>
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">
-                  {filteredFulfillments.filter((f) => f.status === 'fulfilled').length}
-                </p>
-                <p className="text-sm text-gray-600">Terpenuhi</p>
-              </div>
-              <div className="text-center p-4 bg-yellow-50 rounded-lg">
-                <p className="text-2xl font-bold text-yellow-600">
-                  {filteredFulfillments.filter((f) => f.status === 'in_progress').length}
-                </p>
-                <p className="text-sm text-gray-600">Dalam Proses</p>
-              </div>
-            </div>
-          </div>
+          {/* Pagination - Show if not loading and have data */}
+          {!loading && fulfillments.length > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={pagination.totalPages}
+              totalItems={pagination.totalItems}
+              itemsPerPage={pageSize}
+              dataLength={fulfillments.length}
+              hasPrevPage={pagination.hasPrevPage}
+              hasNextPage={pagination.hasNextPage}
+              onPageChange={handlePageChange}
+              onPageSizeChange={handlePageSizeChange}
+            />
+          )}
         </div>
       )}
     </div>

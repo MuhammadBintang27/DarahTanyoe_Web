@@ -335,17 +335,23 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
         .map(([type, count]) => ({ type, count }))
         .sort((a, b) => b.count - a.count);
 
-      // Get campaigns (if endpoint exists)
+      // Get campaigns for this PMI
       let campaignsData: any[] = [];
       try {
-        const { data: campResponse } = await api.get('/campaigns');
-        campaignsData = Array.isArray(campResponse?.data) ? campResponse.data : [];
-      } catch {
+        const { data: campResponse } = await api.get(`/campaigns?pmi_id=${user.id}&limit=100`);
+        // Handle both paginated and non-paginated response
+        if (campResponse?.data) {
+          campaignsData = Array.isArray(campResponse.data) ? campResponse.data : [];
+        } else if (Array.isArray(campResponse)) {
+          campaignsData = campResponse;
+        }
+      } catch (err) {
+        console.warn('[PMI Dashboard] Failed to fetch campaigns:', err);
         campaignsData = [];
       }
 
       const activeCampaigns = campaignsData.filter(
-        (c: any) => c.status === 'active' && c.type === 'fulfillment'
+        (c: any) => c.status === 'active'
       ).length;
 
       // Calculate fulfillment rate

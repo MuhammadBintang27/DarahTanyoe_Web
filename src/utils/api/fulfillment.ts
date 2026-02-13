@@ -76,7 +76,7 @@ export const fulfillmentApi = {
   async getAll(
     filters?: FulfillmentFilters,
     pagination?: PaginationParams
-  ): Promise<FulfillmentRequest[]> {
+  ): Promise<PaginatedResponse<FulfillmentRequest>> {
     try {
       const params = new URLSearchParams();
       
@@ -86,12 +86,24 @@ export const fulfillmentApi = {
       if (filters?.pmi_id) params.append('pmi_id', filters.pmi_id);
       if (filters?.urgency_level) params.append('urgency_level', filters.urgency_level);
       
-      // Add pagination
-      if (pagination?.page) params.append('page', pagination.page.toString());
-      if (pagination?.limit) params.append('limit', pagination.limit.toString());
+      // Add pagination (default: page=1, limit=20)
+      params.append('page', (pagination?.page || 1).toString());
+      params.append('limit', (pagination?.limit || 20).toString());
       
       const response = await apiClient.get(`/fulfillment?${params.toString()}`);
-      return response.data.data || [];
+      
+      // Transform backend response to match frontend interface
+      return {
+        data: response.data.data || [],
+        pagination: response.data.pagination || {
+          page: 1,
+          limit: 20,
+          totalPages: 1,
+          totalItems: 0,
+          hasNextPage: false,
+          hasPrevPage: false
+        }
+      };
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Failed to fetch fulfillments');
     }

@@ -9,7 +9,8 @@ import {
   EligibleDonor,
   CodeVerificationRequest,
   CodeVerificationResponse,
-  CompleteDonationRequest
+  CompleteDonationRequest,
+  PaginationMetadata
 } from '@/types/fulfillment';
 import { fulfillmentApi } from '@/utils/api/fulfillment';
 
@@ -21,9 +22,10 @@ interface FulfillmentContextType {
   eligibleDonors: EligibleDonor[];
   loading: boolean;
   error: string | null;
+  pagination: PaginationMetadata;
 
   // Actions - Fulfillment Management
-  fetchFulfillments: (filters?: FulfillmentFilters) => Promise<void>;
+  fetchFulfillments: (filters?: FulfillmentFilters, page?: number, limit?: number) => Promise<void>;
   getFulfillmentById: (id: string) => Promise<void>;
   createFulfillment: (data: CreateFulfillmentRequest) => Promise<FulfillmentRequest | null>;
   initiateFulfillment: (id: string) => Promise<void>;
@@ -52,14 +54,23 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
   const [eligibleDonors, setEligibleDonors] = useState<EligibleDonor[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagination, setPagination] = useState<PaginationMetadata>({
+    page: 1,
+    limit: 20,
+    totalPages: 1,
+    totalItems: 0,
+    hasNextPage: false,
+    hasPrevPage: false
+  });
 
-  // Fetch all fulfillments with optional filters
-  const fetchFulfillments = useCallback(async (filters?: FulfillmentFilters) => {
+  // Fetch all fulfillments with optional filters and pagination
+  const fetchFulfillments = useCallback(async (filters?: FulfillmentFilters, page?: number, limit?: number) => {
     setLoading(true);
     setError(null);
     try {
-      const result = await fulfillmentApi.getAll(filters);
-      setFulfillments(result || []);
+      const result = await fulfillmentApi.getAll(filters, { page, limit });
+      setFulfillments(result.data || []);
+      setPagination(result.pagination);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch fulfillments');
       setFulfillments([]); // Reset to empty array on error
@@ -272,6 +283,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
     eligibleDonors,
     loading,
     error,
+    pagination,
     fetchFulfillments,
     getFulfillmentById,
     createFulfillment,
