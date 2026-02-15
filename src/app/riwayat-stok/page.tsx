@@ -242,37 +242,40 @@ const RiwayatStok: React.FC = () => {
         {/* Statistics Cards */}
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-gray-700">Total Ditambahkan</p>
-                <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center">
-                  <TrendingUp size={20} className="text-green-600" />
+            <div className="bg-white rounded-xl border border-gray-200 transition-all hover:shadow-md h-28">
+              <div className="h-full flex flex-col justify-between p-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xs font-semibold text-gray-600">Total Ditambahkan</h3>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{stats.totalAdded}</div>
+                  <p className="text-[11px] text-gray-500 mt-1">kantong darah</p>
                 </div>
               </div>
-              <p className="text-3xl font-black text-gray-900">{stats.totalAdded}</p>
-              <p className="text-xs text-gray-600 mt-1">kantong darah</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-gray-700">Total Digunakan</p>
-                <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                  <TrendingDown size={20} className="text-blue-600" />
+            <div className="bg-white rounded-xl border border-gray-200 transition-all hover:shadow-md h-28">
+              <div className="h-full flex flex-col justify-between p-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xs font-semibold text-gray-600">Total Digunakan</h3>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{stats.totalUsed}</div>
+                  <p className="text-[11px] text-gray-500 mt-1">kantong darah</p>
                 </div>
               </div>
-              <p className="text-3xl font-black text-gray-900">{stats.totalUsed}</p>
-              <p className="text-xs text-gray-600 mt-1">kantong darah</p>
             </div>
 
-            <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-xs font-bold text-gray-700">Total Kadaluarsa</p>
-                <div className="w-10 h-10 bg-red-50 rounded-lg flex items-center justify-center">
-                  <AlertCircle size={20} className="text-red-600" />
+            <div className="bg-white rounded-xl border border-gray-200 transition-all hover:shadow-md h-28">
+              <div className="h-full flex flex-col justify-between p-4">
+                <div className="flex justify-between items-start">
+                  <h3 className="text-xs font-semibold text-gray-600">Total Kadaluarsa</h3>
+                </div>
+                <div>
+                  <div className="text-2xl font-bold text-gray-900">{stats.totalExpired}</div>
+                  <p className="text-[11px] text-gray-500 mt-1">kantong darah</p>
                 </div>
               </div>
-              <p className="text-3xl font-black text-gray-900">{stats.totalExpired}</p>
-              <p className="text-xs text-gray-600 mt-1">kantong darah</p>
             </div>
           </div>
         )}

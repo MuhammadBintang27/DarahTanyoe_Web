@@ -6,6 +6,7 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/context/authContext";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 const LoginContent = () => {
   const searchParams = useSearchParams();
@@ -68,6 +69,7 @@ const LoginContent = () => {
       if (response.data.status === 'SUCCESS') {
         const { session, institution } = response.data;
         login(institution, session);
+        toast.success("Login berhasil!");
         
         // Direct redirect to specific dashboard based on role
         const targetPath = institution.institution_type === 'hospital' ? '/hospital' 
@@ -77,11 +79,15 @@ const LoginContent = () => {
         console.log('[LoginPage] Login successful, redirecting to:', targetPath);
         router.replace(targetPath);
       } else {
-        setError(response.data.message || "Login failed");
+        const errorMessage = response.data.message || "Login failed";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err: any) {
       console.error('[LoginPage] Login error:', err);
-      setError(err.response?.data?.message || "An error occurred during login");
+      const errorMessage = err.response?.data?.message || "An error occurred during login";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +127,10 @@ const LoginContent = () => {
               id="email"
               type="text"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (error) setError(""); // Clear error when user types
+              }}
               placeholder="Email"
               className="shadow-lg h-14 border border-black/20 placeholder:text-black/20 bg-white/ backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
             />
@@ -134,14 +143,25 @@ const LoginContent = () => {
               id="password"
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError(""); // Clear error when user types
+              }}
               placeholder="Password"
               className="shadow-lg h-14 border border-black/20 placeholder:text-black/20 bg-white/ backdrop-blur rounded-xl px-4 focus:outline-none text-black/70"
             />
           </div>
+          {/* Error message display */}
+          {error && (
+            <div className="w-full bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg text-center">
+              {error}
+            </div>
+          )}
+
           <button
             type="submit"
-            className="cursor-pointer bg-primary text-white mt-8 shadow-lg px-12 py-4 rounded-xl font-bold text-xl hover:bg-primary/80"
+            disabled={isLoading}
+            className="cursor-pointer bg-primary text-white mt-8 shadow-lg px-12 py-4 rounded-xl font-bold text-xl hover:bg-primary/80 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isLoading ? "Memproses..." : "Masuk"}
           </button>
@@ -171,3 +191,7 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+function successToast(arg0: string) {
+  throw new Error("Function not implemented.");
+}
