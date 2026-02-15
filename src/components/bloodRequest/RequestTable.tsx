@@ -157,7 +157,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                   <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                     Alokasi Darah
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                  <th className="sticky right-0 bg-gray-50 shadow-lg z-10 px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider border-l border-gray-300">
                     Aksi
                   </th>
                 </>
@@ -186,7 +186,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                   {formatDate(row.created_at)}
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-900">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                   {row.requester?.institution_name || '-'}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -231,7 +231,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                   </>
                 )}
                 {userRole === 'pmi' && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm" onClick={(e) => e.stopPropagation()}>
+                  <td className="sticky right-0 bg-white shadow-lg z-10 px-6 py-4 whitespace-nowrap text-sm border-l border-gray-200" onClick={(e) => e.stopPropagation()}>
                     {row.status === 'pending' && onApprove && onReject && (
                       <div className="flex gap-2">
                         <button
