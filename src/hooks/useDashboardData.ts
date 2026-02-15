@@ -62,6 +62,7 @@ interface UseDashboardDataReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  getChartDataForYear?: (year: number) => Promise<any>;
 }
 
 /**
@@ -84,11 +85,21 @@ export const useHospitalDashboard = (): UseDashboardDataReturn => {
       setError(null);
 
       // Get all blood requests for this hospital (list for tables & local charts)
-      const { data: requestsData } = await api.get(
-        `/bloodReq/${user.id}`
-      );
+      const [requestsResponse, chartsResponse] = await Promise.all([
+        // Just get recent requests for table display (limit OK here)
+        api.get(`/bloodReq/${user.id}`, { params: { limit: 50 } }).catch(err => {
+          console.warn('[Hospital Dashboard] Failed to fetch requests:', err);
+          return { data: { data: [] } };
+        }),
+        // Get pre-aggregated chart data
+        api.get(`/dashboard/rs/${user.id}/charts`).catch(err => {
+          console.warn('[Hospital Dashboard] Failed to fetch charts:', err);
+          return { data: { data: {} } };
+        })
+      ]);
 
-      const requests = Array.isArray(requestsData?.data) ? requestsData.data : [];
+      const requests = Array.isArray(requestsResponse.data?.data) ? requestsResponse.data.data : [];
+      const chartData = chartsResponse.data?.data || {};
 
       // Fetch cached summary for faster metrics
       let summaryCounts: Record<string, number> | null = null
@@ -104,15 +115,15 @@ export const useHospitalDashboard = (): UseDashboardDataReturn => {
       // Calculate metrics (prefer summary when available)
       const activeRequests = summaryCounts
         ? ((summaryCounts['pending'] || 0) + (summaryCounts['approved'] || 0) + (summaryCounts['in_fulfillment'] || 0))
-        : requests.filter((r: any) => ['pending', 'approved', 'in_fulfillment'].includes(r.status)).length
+        : requests.filter((r: any) => r && r.status && ['pending', 'approved', 'in_fulfillment'].includes(r.status)).length
 
       const completedRequests = summaryCounts
         ? (summaryCounts['completed'] || 0)
-        : requests.filter((r: any) => r.status === 'completed').length
+        : requests.filter((r: any) => r && r.status === 'completed').length
       
       const readyForPickup = summaryCounts
         ? (summaryCounts['pickup_scheduled'] || 0)
-        : requests.filter((r: any) => r.status === 'pickup_scheduled').length
+        : requests.filter((r: any) => r && r.status === 'pickup_scheduled').length
 
       const totalRequests = summaryCounts
         ? Object.values(summaryCounts).reduce((a,b)=>a+b,0)
@@ -122,82 +133,19 @@ export const useHospitalDashboard = (): UseDashboardDataReturn => {
         ? Math.round(((completedRequests) / totalRequests) * 100)
         : 0
 
-      // Build requests by blood type map
-      const requestsMap: { [key: string]: number } = {};
-      BLOOD_TYPES.forEach(type => {
-        requestsMap[type] = 0;
-      });
+      // Build requests by blood type map from chart data
+      const requestsByBloodType = chartData.bloodTypeDistribution || [];
 
-      requests.forEach((req: any) => {
-        if (!requestsMap[req.blood_type]) {
-          requestsMap[req.blood_type] = 0;
-        }
-        requestsMap[req.blood_type] += 1;
-      });
-
-      const requestsByBloodType = Object.entries(requestsMap)
-        .map(([type, count]) => ({ type, count }))
-        .sort((a, b) => b.count - a.count);
-
-      // Generate yearly trend data (last 12 months)
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const currentDate = new Date();
-      const requestsTrend: { month: string; count: number }[] = [];
-
-      // Create trend for last 12 months
-      for (let i = 11; i >= 0; i--) {
-        const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-        const monthYear = monthDate.toISOString().substring(0, 7); // YYYY-MM
-        const monthLabel = monthNames[monthDate.getMonth()];
-
-        // Count requests for this month
-        const monthCount = requests.filter((r: any) => {
-          const reqDate = new Date(r.created_at).toISOString().substring(0, 7);
-          return reqDate === monthYear;
-        }).length;
-
-        requestsTrend.push({
-          month: monthLabel,
-          count: monthCount,
-        });
-      }
-
-      // Generate trends for all available years
-      const allYears = new Set<number>();
-      requests.forEach((r: any) => {
-        const year = new Date(r.created_at).getFullYear();
-        allYears.add(year);
-      });
-
-      // Always include current year
-      allYears.add(new Date().getFullYear());
-
-      const availableYears = Array.from(allYears).sort((a, b) => b - a);
-
+      // Get monthly trends from chart data
+      const requestsTrend = chartData.monthlyTrends || [];
+      const availableYears = chartData.availableYears || [new Date().getFullYear()];
+      
+      // Build yearly trend data from API if needed
       const requestsTrendByYear: { [year: number]: { month: string; count: number }[] } = {};
-
-      availableYears.forEach(year => {
-        const yearTrend: { month: string; count: number }[] = [];
-        
-        for (let month = 0; month < 12; month++) {
-          const monthDate = new Date(year, month, 1);
-          const monthYear = monthDate.toISOString().substring(0, 7); // YYYY-MM
-          const monthLabel = monthNames[month];
-
-          // Count requests for this month and year
-          const monthCount = requests.filter((r: any) => {
-            const reqDate = new Date(r.created_at).toISOString().substring(0, 7);
-            return reqDate === monthYear;
-          }).length;
-
-          yearTrend.push({
-            month: monthLabel,
-            count: monthCount,
-          });
-        }
-
-        requestsTrendByYear[year] = yearTrend;
-      });
+      
+      // For now, just use current year data. In future, we can call API with year parameter
+      const currentYear = new Date().getFullYear();
+      requestsTrendByYear[currentYear] = requestsTrend;
 
       setData({
         activeRequests,
@@ -219,11 +167,25 @@ export const useHospitalDashboard = (): UseDashboardDataReturn => {
     }
   }, [user?.id]);
 
+  const getChartDataForYear = useCallback(async (year: number) => {
+    if (!user?.id) return null;
+    
+    try {
+      const { data: response } = await api.get(`/dashboard/rs/${user.id}/charts`, {
+        params: { year }
+      });
+      return response?.data || null;
+    } catch (error) {
+      console.error('Error fetching chart data for year:', error);
+      return null;
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  return { data, loading, error, refetch: fetchData };
+  return { data, loading, error, refetch: fetchData, getChartDataForYear };
 };
 
 /**
@@ -289,16 +251,22 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
         }))
         .slice(0, 5); // Top 5 low stock items
 
-      // Get blood requests for this PMI (as partner) for list/chart
-      let requestsData: any[] = [];
-      try {
-        const { data: reqResponse } = await api.get(
-          `/bloodReq/partner/${user.id}`
-        );
-        requestsData = Array.isArray(reqResponse?.data) ? reqResponse.data : [];
-      } catch {
-        requestsData = [];
-      }
+      // Get blood requests for this PMI (as partner) and chart data
+      const [requestsResponse, chartsResponse] = await Promise.all([
+        // Just get recent requests for table display
+        api.get(`/bloodReq/partner/${user.id}`, { params: { limit: 50 } }).catch(err => {
+          console.warn('[PMI Dashboard] Failed to fetch requests:', err);
+          return { data: { data: [] } };
+        }),
+        // Get pre-aggregated chart data
+        api.get(`/dashboard/pmi/${user.id}/charts`).catch(err => {
+          console.warn('[PMI Dashboard] Failed to fetch charts:', err);
+          return { data: { data: {} } };
+        })
+      ]);
+      
+      const requestsData = Array.isArray(requestsResponse.data?.data) ? requestsResponse.data.data : [];
+      const chartData = chartsResponse.data?.data || {};
 
       // Fetch cached summary for faster counts
       let summaryCounts: Record<string, number> | null = null
@@ -312,29 +280,15 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
       // Hitung permintaan berjalan & selesai (prefer summary when available)
       const runningRequests = summaryCounts
         ? ((summaryCounts['pending'] || 0) + (summaryCounts['approved'] || 0) + (summaryCounts['in_fulfillment'] || 0) + (summaryCounts['pickup_scheduled'] || 0))
-        : requestsData.filter((r: any) => ['pending', 'approved', 'in_fulfillment', 'pickup_scheduled'].includes(r.status)).length
+        : requestsData.filter((r: any) => r && r.status && ['pending', 'approved', 'in_fulfillment', 'pickup_scheduled'].includes(r.status)).length
 
       const completedRequests = summaryCounts
         ? (summaryCounts['completed'] || 0)
-        : requestsData.filter((r: any) => r.status === 'completed').length
+        : requestsData.filter((r: any) => r && r.status === 'completed').length
 
-      // Build requests by blood type map
-      const requestsMap: { [key: string]: number } = {};
-      BLOOD_TYPES.forEach(type => {
-        requestsMap[type] = 0;
-      });
-
-      requestsData.forEach((req: any) => {
-        if (!requestsMap[req.blood_type]) {
-          requestsMap[req.blood_type] = 0;
-        }
-        requestsMap[req.blood_type] += 1;
-      });
-
-      const requestsByBloodType = Object.entries(requestsMap)
-        .map(([type, count]) => ({ type, count }))
-        .sort((a, b) => b.count - a.count);
-
+      // Build requests by blood type map from chart data
+      const requestsByBloodType = chartData.bloodTypeDistribution || [];
+      
       // Get campaigns for this PMI
       let campaignsData: any[] = [];
       try {
@@ -363,65 +317,16 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
         ? Math.round((completedRequests / totalRequests) * 100)
         : 0
 
-      // Generate yearly trend data (last 12 months)
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const currentDate = new Date();
-      const requestsTrend: { month: string; count: number }[] = [];
-
-      // Create trend for last 12 months
-      for (let i = 11; i >= 0; i--) {
-        const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-        const monthYear = monthDate.toISOString().substring(0, 7); // YYYY-MM
-        const monthLabel = monthNames[monthDate.getMonth()];
-
-        // Count requests for this month
-        const monthCount = requestsData.filter((r: any) => {
-          const reqDate = new Date(r.created_at).toISOString().substring(0, 7);
-          return reqDate === monthYear;
-        }).length;
-
-        requestsTrend.push({
-          month: monthLabel,
-          count: monthCount,
-        });
-      }
-
-      // Generate trends for all available years
-      const allYears = new Set<number>();
-      requestsData.forEach((r: any) => {
-        const year = new Date(r.created_at).getFullYear();
-        allYears.add(year);
-      });
-
-      // Always include current year
-      allYears.add(new Date().getFullYear());
-
-      const availableYears = Array.from(allYears).sort((a, b) => b - a);
-
+      // Get monthly trends and years from chart data
+      const requestsTrend = chartData.monthlyTrends || [];
+      const availableYears = chartData.availableYears || [new Date().getFullYear()];
+      
+      // Build yearly trend data from API if needed
       const requestsTrendByYear: { [year: number]: { month: string; count: number }[] } = {};
-
-      availableYears.forEach(year => {
-        const yearTrend: { month: string; count: number }[] = [];
-        
-        for (let month = 0; month < 12; month++) {
-          const monthDate = new Date(year, month, 1);
-          const monthYear = monthDate.toISOString().substring(0, 7); // YYYY-MM
-          const monthLabel = monthNames[month];
-
-          // Count requests for this month and year
-          const monthCount = requestsData.filter((r: any) => {
-            const reqDate = new Date(r.created_at).toISOString().substring(0, 7);
-            return reqDate === monthYear;
-          }).length;
-
-          yearTrend.push({
-            month: monthLabel,
-            count: monthCount,
-          });
-        }
-
-        requestsTrendByYear[year] = yearTrend;
-      });
+      
+      // For now, just use current year data. In future, we can call API with year parameter
+      const currentYear = new Date().getFullYear();
+      requestsTrendByYear[currentYear] = requestsTrend;
 
       setData({
         activeCampaigns,
@@ -444,11 +349,25 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
     }
   }, [user?.id]);
 
+  const getChartDataForYear = useCallback(async (year: number) => {
+    if (!user?.id) return null;
+    
+    try {
+      const { data: response } = await api.get(`/dashboard/pmi/${user.id}/charts`, {
+        params: { year }
+      });
+      return response?.data || null;
+    } catch (error) {
+      console.error('Error fetching PMI chart data for year:', error);
+      return null;
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  return { data, loading, error, refetch: fetchData };
+  return { data, loading, error, refetch: fetchData, getChartDataForYear };
 };
 
 /**

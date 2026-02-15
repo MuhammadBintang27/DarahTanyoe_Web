@@ -108,9 +108,7 @@ const LoginContent = () => {
         <p className="font-light text-primary/50 mb-8">
           Selamat Datang di Darah Tanyoe - Portal Institusi
         </p>
-        <p className="text-sm text-primary/60 mb-4">
-          *Pendonor silakan gunakan aplikasi mobile
-        </p>
+        
         <form
           onSubmit={submitLogin}
           className="flex flex-col items-center gap-6 w-3/4"

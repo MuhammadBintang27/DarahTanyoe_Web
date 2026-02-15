@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useAuth } from '@/context/authContext';
 import ProtectedRoute from '@/components/protectedRoute/protectedRoute';
 import { usePMIDashboard, PMIDashboardData } from '@/hooks/useDashboardData';
@@ -9,15 +9,34 @@ import { PieChart, LineChart } from '@/components/charts/dashboardCharts';
 
 const PMIDashboard = () => {
   const { user } = useAuth();
-  const { data, loading, error, refetch } = usePMIDashboard();
+  const { data, loading, error, refetch, getChartDataForYear } = usePMIDashboard();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [yearChartData, setYearChartData] = useState<any>(null);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refetch();
     setIsRefreshing(false);
   };
+
+  const handleYearChange = async (year: number) => {
+    setSelectedYear(year);
+    if (getChartDataForYear) {
+      // Always fetch data for selected year to ensure we get full 12 months
+      const chartData = await getChartDataForYear(year);
+      setYearChartData(chartData);
+    } else {
+      setYearChartData(null);
+    }
+  };
+
+  // Auto-fetch current year data on component mount
+  useEffect(() => {
+    if (data && getChartDataForYear && selectedYear === new Date().getFullYear()) {
+      handleYearChange(selectedYear);
+    }
+  }, [data, getChartDataForYear]);
 
   if (!user || user.institution_type !== 'pmi') {
     return (
@@ -31,14 +50,12 @@ const PMIDashboard = () => {
 
   const dashboardData = data as PMIDashboardData | null;
 
-  // Prepare pie chart data for blood type requests
-  const pieChartData = (dashboardData?.requestsByBloodType || [])
-    .filter((item: any) => item.count > 0)
-    .map((item: any, idx: number) => ({
-      label: `Darah ${item.type}`,
-      value: item.count,
-      color: '',
-    }));
+  // Prepare pie chart data for blood type requests using chart API data
+  const pieChartData = (yearChartData?.bloodTypeDistribution || data?.requestsByBloodType || []).map((item: any) => ({
+    label: `Darah ${item.type}`,
+    value: item.count,
+    color: '',
+  }));
 
   return (
     <ProtectedRoute>
@@ -75,9 +92,9 @@ const PMIDashboard = () => {
         {/* Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <MetricCard
-            title="Kampanye Aktif"
+            title="Pemenuhan Darah Aktif"
             value={loading ? '-' : dashboardData?.activeCampaigns || 0}
-            subtitle="kampanye berjalan"
+            subtitle="Pemenuhan Darah berjalan"
             color="blue"
             isLoading={loading}
             variant="neutral"
@@ -166,13 +183,16 @@ const PMIDashboard = () => {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-max lg:auto-rows-auto">
-          {/* Permintaan per Golongan Darah - Pie Chart */
-          }
+          {/* Permintaan per Golongan Darah - Pie Chart */}
+
           <div className="h-fit">
             <PieChart
               title="Permintaan per Golongan Darah"
               data={pieChartData}
               isLoading={loading}
+              selectedYear={selectedYear}
+              availableYears={data?.availableYears || []}
+              onYearChange={handleYearChange}
             />
           </div>
 
@@ -180,11 +200,11 @@ const PMIDashboard = () => {
           <div className="h-fit">
             <LineChart
               title="Tren Permintaan per Bulan"
-              data={dashboardData?.requestsTrendByYear?.[selectedYear] || dashboardData?.requestsTrend || []}
+              data={yearChartData?.monthlyTrends || data?.requestsTrend || []}
               isLoading={loading}
               selectedYear={selectedYear}
-              availableYears={dashboardData?.availableYears || []}
-              onYearChange={(year) => setSelectedYear(year)}
+              availableYears={data?.availableYears || []}
+              onYearChange={handleYearChange}
             />
           </div>
         </div>

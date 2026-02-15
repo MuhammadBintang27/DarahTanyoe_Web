@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useAuth } from '@/context/authContext';
 import ProtectedRoute from '@/components/protectedRoute/protectedRoute';
 import { useHospitalDashboard, HospitalDashboardData } from '@/hooks/useDashboardData';
@@ -9,14 +9,25 @@ import { PieChart, LineChart } from '@/components/charts/dashboardCharts';
 
 const HospitalDashboard = () => {
   const { user } = useAuth();
-  const { data, loading, error, refetch } = useHospitalDashboard();
+  const { data, loading, error, refetch, getChartDataForYear } = useHospitalDashboard();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
+  const [yearChartData, setYearChartData] = useState<any>(null);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refetch();
     setIsRefreshing(false);
+  };
+
+  const handleYearChange = async (year: number) => {
+    setSelectedYear(year);
+    if (getChartDataForYear && year !== new Date().getFullYear()) {
+      const chartData = await getChartDataForYear(year);
+      setYearChartData(chartData);
+    } else {
+      setYearChartData(null);
+    }
   };
 
   if (!user || user.institution_type !== 'hospital') {
@@ -31,14 +42,12 @@ const HospitalDashboard = () => {
 
   const dashboardData = data as HospitalDashboardData | null;
 
-  // Prepare pie chart data for blood type requests
-  const pieChartData = (dashboardData?.requestsByBloodType || [])
-    .filter((item: any) => item.count > 0)
-    .map((item: any, idx: number) => ({
-      label: `Darah ${item.type}`,
-      value: item.count,
-      color: '',
-    }));
+  // Prepare pie chart data for blood type requests using chart API data
+  const pieChartData = (yearChartData?.bloodTypeDistribution || data?.requestsByBloodType || []).map((item: any) => ({
+    label: `Darah ${item.type}`,
+    value: item.count,
+    color: '',
+  }));
 
   return (
     <ProtectedRoute>
@@ -157,13 +166,15 @@ const HospitalDashboard = () => {
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 auto-rows-max lg:auto-rows-auto">
-          {/* Permintaan per Golongan Darah - Pie Chart */
-          }
+          {/* Permintaan per Golongan Darah - Pie Chart */}
           <div className="h-fit">
             <PieChart
               title="Permintaan per Golongan Darah"
               data={pieChartData}
               isLoading={loading}
+              selectedYear={selectedYear}
+              availableYears={data?.availableYears || []}
+              onYearChange={handleYearChange}
             />
           </div>
 
@@ -171,11 +182,11 @@ const HospitalDashboard = () => {
           <div className="h-fit">
             <LineChart
               title="Tren Permintaan per Bulan"
-              data={dashboardData?.requestsTrendByYear?.[selectedYear] || dashboardData?.requestsTrend || []}
+              data={yearChartData?.monthlyTrends || data?.requestsTrendByYear?.[selectedYear] || data?.requestsTrend || []}
               isLoading={loading}
               selectedYear={selectedYear}
-              availableYears={dashboardData?.availableYears || []}
-              onYearChange={(year) => setSelectedYear(year)}
+              availableYears={data?.availableYears || []}
+              onYearChange={handleYearChange}
             />
           </div>
         </div>

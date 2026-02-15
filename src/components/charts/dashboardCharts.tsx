@@ -25,6 +25,9 @@ interface PieChartProps {
   data: PieChartData[];
   title: string;
   isLoading?: boolean;
+  onYearChange?: (year: number) => void;
+  selectedYear?: number;
+  availableYears?: number[];
 }
 
 const CHART_COLORS = [
@@ -83,7 +86,14 @@ const renderCustomLabel = (entry: any) => {
   );
 };
 
-export const PieChart: React.FC<PieChartProps> = ({ data, title, isLoading = false }) => {
+export const PieChart: React.FC<PieChartProps> = ({ 
+  data, 
+  title, 
+  isLoading = false,
+  onYearChange,
+  selectedYear,
+  availableYears = [],
+}) => {
   // Transform data untuk Recharts format
   const chartData = data.map((item, idx) => ({
     name: item.label.replace('Darah ', ''),
@@ -113,7 +123,22 @@ export const PieChart: React.FC<PieChartProps> = ({ data, title, isLoading = fal
 
   return (
     <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        {availableYears.length > 0 && onYearChange && (
+          <select
+            value={selectedYear || new Date().getFullYear()}
+            onChange={(e) => onYearChange(parseInt(e.target.value))}
+            className="px-3 py-1.5 border border-gray-300 rounded text-sm font-medium text-gray-700 bg-white hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                Tahun {year}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
       <p className="text-xs text-gray-500 mb-4">Hover ke slice untuk melihat detail</p>
 
       {chartData.length === 0 ? (
