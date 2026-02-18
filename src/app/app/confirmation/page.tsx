@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function ConfirmationRedirect() {
+function ConfirmationContent() {
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const [showFallback, setShowFallback] = useState(false);
@@ -62,5 +62,17 @@ export default function ConfirmationRedirect() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ConfirmationRedirect() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      </div>
+    }>
+      <ConfirmationContent />
+    </Suspense>
   );
 }
