@@ -6,11 +6,10 @@ import MainLayout from "./mainLayout";
 export const RootLayoutWrapper = ({ children }: { children: React.ReactNode }) => {
   const pathname = usePathname();
   
-  // Skip MainLayout untuk halaman auth (login/register) dan redirect pages (app/*)
+  // Skip MainLayout untuk halaman auth (login/register)
   const isAuthPage = pathname === "/login" || pathname === "/register";
-  const isPublicAppPage = pathname?.startsWith("/app/"); // Redirect pages, no auth needed
   
-  if (isAuthPage || isPublicAppPage) {
+  if (isAuthPage) {
     return <>{children}</>;
   }
   
