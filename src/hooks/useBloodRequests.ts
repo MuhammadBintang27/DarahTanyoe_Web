@@ -134,7 +134,7 @@ export const usePartners = (institutionType?: 'pmi' | 'hospital') => {
 };
 
 export const useBloodStock = (userId: string | undefined) => {
-  const [bloodStock, setBloodStock] = useState<Array<{ blood_type: string; quantity: number }>>([]);
+  const [bloodStock, setBloodStock] = useState<Array<{ blood_type: string; component_type: string; quantity: number }>>([]);
   const [loading, setLoading] = useState(false);
 
   const fetchBloodStock = async () => {
@@ -145,13 +145,23 @@ export const useBloodStock = (userId: string | undefined) => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/partners/${userId}`);
       const stockData = response.data.data?.blood_stock || [];
       
-      // Aggregate quantities for each blood type (multiple entries possible)
+      // Aggregate quantities for each blood type AND component type combination
       const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-      const aggregatedStock = bloodTypes.map(type => {
-        const totalQuantity = stockData
-          .filter((s: any) => s.blood_type === type)
-          .reduce((sum: number, stock: any) => sum + (stock.quantity || 0), 0);
-        return { blood_type: type, quantity: totalQuantity };
+      const componentTypes = ['WB', 'PRC', 'FFP', 'TC', 'Cryo'];
+      
+      const aggregatedStock: Array<{ blood_type: string; component_type: string; quantity: number }> = [];
+      
+      bloodTypes.forEach(bloodType => {
+        componentTypes.forEach(componentType => {
+          const totalQuantity = stockData
+            .filter((s: any) => s.blood_type === bloodType && (s.component_type || 'WB') === componentType)
+            .reduce((sum: number, stock: any) => sum + (stock.quantity || 0), 0);
+          
+          // Only add to array if there's stock available
+          if (totalQuantity > 0) {
+            aggregatedStock.push({ blood_type: bloodType, component_type: componentType, quantity: totalQuantity });
+          }
+        });
       });
       
       setBloodStock(aggregatedStock);
