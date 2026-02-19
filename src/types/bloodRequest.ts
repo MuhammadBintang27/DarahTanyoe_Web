@@ -27,6 +27,8 @@ export interface BloodRequest {
   patient_gender?: 'Laki-laki' | 'Perempuan';
   prescribing_doctor?: string;
   doctor_license?: string;
+  // Component type field
+  component_type?: 'WB' | 'PRC' | 'FFP' | 'TC' | 'Cryo';
   requester?: {
     id: string;
     institution_name: string;
@@ -102,6 +104,8 @@ export interface CreateRequestForm {
   patient_gender: 'Laki-laki' | 'Perempuan';
   prescribing_doctor: string;
   doctor_license?: string;
+  // Component type field
+  component_type?: 'WB' | 'PRC' | 'FFP' | 'TC' | 'Cryo';
 }
 
 // User Type

@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { MapPin, Droplet, Phone, Mail } from "lucide-react";
+import { MapPin, Droplet, Phone, Mail, Filter } from "lucide-react";
 import axios from "axios";
 import toast from "react-hot-toast";
 
 import ProtectedRoute from "@/components/protectedRoute/protectedRoute";
 import Skeleton from "@/components/ui/Skeleton";
 import { useAuth } from "@/context/authContext";
+import { ComponentType, getAllComponentTypes, getComponentInfo, formatComponentType, getComponentBadgeClasses } from '@/utils/componentHelpers';
 
 interface BloodStock {
   blood_type: string;
+  component_type: ComponentType;
   quantity: number;
   expiry_date?: string;
 }
@@ -31,6 +33,8 @@ const InformasiPMI: React.FC = () => {
   const [pmiList, setPmiList] = useState<PMIInfo[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedPMI, setSelectedPMI] = useState<string>("");
+  const [selectedComponent, setSelectedComponent] = useState<ComponentType>('WB');
+  const componentTypes = getAllComponentTypes();
 
   useEffect(() => {
     fetchPMIList();
@@ -64,10 +68,9 @@ const InformasiPMI: React.FC = () => {
 
   const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
 
-  const getStockQuantity = (bloodType: string): number => {
-    // Sum up ALL stocks for this blood type (there might be multiple entries)
+  const getStockQuantity = (bloodType: string, componentType: ComponentType): number => {
     const totalQuantity = selectedPMIData?.blood_stock
-      ?.filter((s) => s.blood_type === bloodType)
+      ?.filter((s) => s.blood_type === bloodType && s.component_type === componentType)
       .reduce((sum, stock) => sum + (stock.quantity || 0), 0) || 0;
     return totalQuantity;
   };
@@ -204,18 +207,47 @@ const InformasiPMI: React.FC = () => {
                 </h3>
               </div>
 
+              {/* Component Type Filter */}
+              <div className="mb-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <Filter className="h-5 w-5 text-gray-600" />
+                  <h4 className="font-bold text-gray-800 text-sm">Filter Jenis Komponen</h4>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {componentTypes.map((comp) => (
+                    <button
+                      key={comp.value}
+                      onClick={() => setSelectedComponent(comp.value)}
+                      className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${selectedComponent === comp.value
+                          ? `${comp.bgColor} ${comp.color} ring-2 ring-offset-2 ring-primary`
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                    >
+                      {comp.icon} {comp.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {bloodTypes.map((bloodType) => {
-                  const quantity = getStockQuantity(bloodType);
+                  const quantity = getStockQuantity(bloodType, selectedComponent);
+                  const componentInfo = getComponentInfo(selectedComponent);
                   return (
                     <div
-                      key={bloodType}
+                      key={`${bloodType}-${selectedComponent}`}
                       className={`p-6 rounded-xl border-2 ${getStockColor(
                         quantity
                       )} transition-all hover:scale-105`}
                     >
                       <div className="text-center">
+                        <Droplet className="mx-auto mb-2 text-red-500" size={24} />
                         <p className="text-2xl font-bold mb-1">{bloodType}</p>
+                        <div className="mb-2">
+                          <span className={getComponentBadgeClasses(selectedComponent)}>
+                            {componentInfo.icon} {componentInfo.label}
+                          </span>
+                        </div>
                         <p className="text-3xl font-extrabold mb-1">
                           {quantity}
                         </p>

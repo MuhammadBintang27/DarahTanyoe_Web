@@ -2,6 +2,7 @@ import { X } from 'lucide-react';
 import { BloodRequest } from '@/types/bloodRequest';
 import { StatusBadge } from './StatusBadge';
 import { formatDate } from '@/utils/formatters';
+import { getComponentInfo, formatComponentType, getComponentBadgeClasses } from '@/utils/componentHelpers';
 
 interface RequestDetailModalProps {
   isOpen: boolean;
@@ -126,6 +127,18 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Golongan Darah</label>
                 <p className="font-bold text-primary text-lg">{request.blood_type}</p>
+              </div>
+              {/* Component Type */}
+              <div>
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Jenis Komponen</label>
+                <div className="mt-1">
+                  <span className={getComponentBadgeClasses(request.component_type || 'WB' as any)}>
+                    {formatComponentType(request.component_type || 'WB' as any)}
+                  </span>
+                  <p className="mt-1 text-xs text-gray-600">
+                    {getComponentInfo(request.component_type || 'WB' as any).description}
+                  </p>
+                </div>
               </div>
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Jumlah</label>

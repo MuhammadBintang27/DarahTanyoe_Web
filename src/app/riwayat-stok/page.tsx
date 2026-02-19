@@ -28,6 +28,7 @@ interface StockHistory {
   id: string;
   institution_id: string;
   blood_type: string;
+  component_type: string;
   change_type: "add" | "reduce" | "used" | "expired";
   quantity_change: number;
   previous_quantity: number;
@@ -69,6 +70,7 @@ const RiwayatStok: React.FC = () => {
   // Filters
   const [actionTypeFilter, setActionTypeFilter] = useState<string>("");
   const [bloodTypeFilter, setBloodTypeFilter] = useState<string>("");
+  const [componentTypeFilter, setComponentTypeFilter] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
 
@@ -77,7 +79,7 @@ const RiwayatStok: React.FC = () => {
       fetchHistory();
       fetchStats();
     }
-  }, [user, actionTypeFilter, bloodTypeFilter, startDate, endDate, currentPage]);
+  }, [user, actionTypeFilter, bloodTypeFilter, componentTypeFilter, startDate, endDate, currentPage]);
 
   const fetchHistory = async () => {
     if (!user?.id) return;
@@ -94,6 +96,7 @@ const RiwayatStok: React.FC = () => {
 
       if (actionTypeFilter) params.actionType = actionTypeFilter;
       if (bloodTypeFilter) params.bloodType = bloodTypeFilter;
+      if (componentTypeFilter) params.componentType = componentTypeFilter;
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
 
@@ -210,15 +213,38 @@ const RiwayatStok: React.FC = () => {
     }
   };
 
+  const getComponentTypeLabel = (componentType: string): string => {
+    const labels: { [key: string]: string } = {
+      'WB': 'WB',
+      'PRC': 'PRC',
+      'FFP': 'FFP',
+      'TC': 'TC',
+      'Cryo': 'Cryo'
+    };
+    return labels[componentType] || componentType;
+  };
+
+  const getComponentTypeBadgeColor = (componentType: string): string => {
+    const colors: { [key: string]: string } = {
+      'WB': 'bg-red-100 text-red-700 border-red-300',
+      'PRC': 'bg-orange-100 text-orange-700 border-orange-300',
+      'FFP': 'bg-blue-100 text-blue-700 border-blue-300',
+      'TC': 'bg-purple-100 text-purple-700 border-purple-300',
+      'Cryo': 'bg-teal-100 text-teal-700 border-teal-300'
+    };
+    return colors[componentType] || 'bg-gray-100 text-gray-700 border-gray-300';
+  };
+
   const resetFilters = () => {
     setActionTypeFilter("");
     setBloodTypeFilter("");
+    setComponentTypeFilter("");
     setStartDate("");
     setEndDate("");
     setCurrentPage(1);
   };
 
-  const hasActiveFilters = actionTypeFilter || bloodTypeFilter || startDate || endDate;
+  const hasActiveFilters = actionTypeFilter || bloodTypeFilter || componentTypeFilter || startDate || endDate;
 
   // Redirect if not PMI
   useEffect(() => {
@@ -295,7 +321,7 @@ const RiwayatStok: React.FC = () => {
           
           {showFilters && (
             <>
-              <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
+              <div className="grid gap-4 grid-cols-1 lg:grid-cols-5">
                 {/* Action Type Filter */}
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-2">
@@ -333,6 +359,25 @@ const RiwayatStok: React.FC = () => {
                     <option value="AB-">AB-</option>
                     <option value="O+">O+</option>
                     <option value="O-">O-</option>
+                  </select>
+                </div>
+
+                {/* Component Type Filter */}
+                <div>
+                  <label className="block text-xs font-semibold text-gray-700 mb-2">
+                    Komponen
+                  </label>
+                  <select
+                    value={componentTypeFilter}
+                    onChange={(e) => setComponentTypeFilter(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:outline-none focus:border-blue-500 transition-colors text-sm"
+                  >
+                    <option value="">Semua</option>
+                    <option value="WB">WB (Whole Blood)</option>
+                    <option value="PRC">PRC (Packed Red Cells)</option>
+                    <option value="FFP">FFP (Fresh Frozen Plasma)</option>
+                    <option value="TC">TC (Thrombocyte Concentrate)</option>
+                    <option value="Cryo">Cryo (Cryoprecipitate)</option>
                   </select>
                 </div>
 
@@ -442,10 +487,15 @@ const RiwayatStok: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                    <p className="text-xs text-gray-600 font-semibold mb-1">Golongan Darah</p>
-                    <p className="text-sm text-gray-900 font-bold">
-                      {record.blood_type}
-                    </p>
+                    <p className="text-xs text-gray-600 font-semibold mb-1">Golongan Darah / Komponen</p>
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-gray-900 font-bold">
+                        {record.blood_type}
+                      </p>
+                      <span className={`px-2 py-0.5 rounded text-xs font-bold border ${getComponentTypeBadgeColor(record.component_type)}`}>
+                        {getComponentTypeLabel(record.component_type)}
+                      </span>
+                    </div>
                   </div>
                   
                   <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">

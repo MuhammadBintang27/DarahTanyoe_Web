@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, NotebookPen, Plus, Info, TruckIcon, History, Users, CalendarCheck } from "lucide-react";
+import { LayoutDashboard, NotebookPen, Plus, Info, TruckIcon, History, Users, CalendarCheck, Beaker } from "lucide-react";
 import Image from "next/image";
 import React from "react";
 import StokDarahIcon from "../icons/stokDarah";
@@ -35,6 +35,11 @@ export const Sidebar = () => {
       name: "Janji Donor",
       icon: () => <CalendarCheck color="#9AA2AC" />,
       url: "/janji-donor",
+    },
+    {
+      name: "Proses Donasi",
+      icon: () => <Beaker color="#9AA2AC" />,
+      url: "/proses-donasi",
     },
     {
       name: "Stok Darah",
@@ -87,15 +92,15 @@ export const Sidebar = () => {
   return (
     <div className="fixed left-0 h-full">
       <div
-        className={`bg-white h-full w-1/5 shadow-lg fixed left-0 transition-transform duration-300 pt-6 px-4 flex flex-col gap-8 top-14 ${
+        className={`bg-white h-full w-72 shadow-lg fixed left-0 transition-transform duration-300 pt-5 px-4 flex flex-col gap-6 top-14 ${
           isShowSidebar ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="w-full justify-center flex">
-          <Image src="/images/logo.png" alt="logo" width={200} height={200} />
+          <Image src="/images/logo.png" alt="logo" width={180} height={180} />
         </div>
         
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4">
           {menu
             .filter((item) => item.url)
             .map((item, index) => (
@@ -103,11 +108,11 @@ export const Sidebar = () => {
                 href={item.url!}
                 key={index}
                 className={`${
-                  pathname === item.url ? "bg-primary/20 rounded-2xl " : ""
-                } hover:scale-105 duration-200 px-4 flex gap-4 items-center w-full py-3`}
+                  pathname === item.url ? "bg-primary/20 rounded-xl " : ""
+                } hover:scale-105 duration-200 px-3 flex gap-3 items-center w-full py-2.5`}
               >
                 {typeof item.icon === "function" ? item.icon() : item.icon}
-                <p className="text-black_primary/80 font-bold text-xl">
+                <p className="text-black_primary/80 font-bold text-lg">
                   {item.name}
                 </p>
               </Link>

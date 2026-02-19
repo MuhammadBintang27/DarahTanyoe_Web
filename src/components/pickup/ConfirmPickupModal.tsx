@@ -134,7 +134,7 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Unique Code Input */}
-          <div>
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Kode Unik dari Rumah Sakit <span className="text-red-500">*</span>
             </label>
@@ -154,9 +154,9 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
           </div>
 
           {/* Sample Verification Section */}
-          <div className="border-t pt-5 mt-5">
-            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <span className="bg-red-100 text-red-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">!</span>
+          <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+            <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+              <span className="bg-red-100 text-red-700 w-5 h-5 rounded-full flex items-center justify-center text-xs">!</span>
               Verifikasi Sample Darah Pasien
             </h4>
 
@@ -183,7 +183,7 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
 
             {/* Test Result - Only show if sample verified */}
             {sampleVerified && (
-              <div className="space-y-4 pl-8 border-l-4 border-primary/30">
+              <div className="space-y-4 mt-4 pt-4 border-t border-gray-200">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">
                     Hasil Uji Cross-Match <span className="text-red-500">*</span>

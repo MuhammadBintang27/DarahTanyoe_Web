@@ -11,7 +11,7 @@ interface RequestTableProps {
   currentPage: number;
   itemsPerPage: number;
   userRole: 'hospital' | 'pmi';
-  bloodStock?: Array<{ blood_type: string; quantity: number }>;
+  bloodStock?: Array<{ blood_type: string; component_type: string; quantity: number }>;
   onApprove?: (requestId: string) => void;
   onReject?: (requestId: string) => void;
   onViewDetail?: (request: BloodRequest) => void;
@@ -35,26 +35,23 @@ export const RequestTable: React.FC<RequestTableProps> = ({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const [allocationCache, setAllocationCache] = useState<Record<string, any>>({});
 
-  // Helper function to check if blood stock is sufficient
-  const isStockSufficient = (bloodType: string, quantity: number): boolean => {
-    const stock = bloodStock.find(s => s.blood_type === bloodType);
+  // Helper function to check if blood stock is sufficient (per component type)
+  const isStockSufficient = (bloodType: string, componentType: string, quantity: number): boolean => {
+    const stock = bloodStock.find(s => s.blood_type === bloodType && s.component_type === componentType);
     return stock ? stock.quantity >= quantity : false;
   };
 
   // NEW: Helper to check if allocation + free stock is sufficient (for Opsi 2)
   // Shows "Buat Jadwal Pickup" if we have enough blood from ANY source (allocations OR free stock)
   // Shows "Buat Kampanye Pemenuhan" only if we DON'T have enough from available sources
+  // NOW: Checks component_type match as well
   const isAllocationSufficient = (requestId: string, quantity: number): boolean => {
     const data = allocationCache[requestId];
     if (!data) return false;
     
     // From /with-free-stock endpoint:
     // data.summary = { total_available: X, from_allocation: Y, from_free_stock: Z }
-    if (data.summary?.total_available !== undefined) {
-      return data.summary.total_available >= quantity;
-    }
-    
-    // Fallback for old /available endpoint response
+    // MUST check component_type matches the request's component_type
     if (data.summary?.total_available !== undefined) {
       return data.summary.total_available >= quantity;
     }
@@ -70,6 +67,8 @@ export const RequestTable: React.FC<RequestTableProps> = ({
       for (const request of data) {
         if (['approved', 'in_fulfillment', 'ready'].includes(request.status)) {
           try {
+            console.log(`🔍 Fetching allocation for request ${request.id}: ${request.blood_type} ${request.component_type || 'WB'} x${request.quantity}`);
+            
             // Fetch BOTH allocations and free stock for complete picture
             const response = await fetch(
               `${process.env.NEXT_PUBLIC_API_URL}/allocation/request/${request.id}/with-free-stock`,
@@ -83,6 +82,12 @@ export const RequestTable: React.FC<RequestTableProps> = ({
             if (response.ok) {
               const jsonData = await response.json();
               newCache[request.id] = jsonData.data || jsonData;
+              console.log(`✅ Allocation data for ${request.id}:`, {
+                component_type: jsonData.data?.request?.component_type,
+                total_available: jsonData.data?.summary?.total_available,
+                from_allocation: jsonData.data?.summary?.total_from_allocation,
+                from_free_stock: jsonData.data?.summary?.total_from_free_stock
+              });
             }
           } catch (error) {
             console.error(`Failed to fetch allocations for ${request.id}:`, error);
@@ -138,7 +143,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                 Nama Pasien
               </th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Gol. Darah
+                Gol. Darah / Komponen
               </th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Jumlah
@@ -177,8 +182,13 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
                   {row.patient_name}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                  {row.blood_type}
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">{row.blood_type}</span>
+                    <span className="text-xs px-2 py-0.5 bg-blue-100 text-blue-700 rounded-full font-medium">
+                      {row.component_type || 'WB'}
+                    </span>
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                 {row.quantity}
@@ -202,6 +212,9 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                             <>
                               <div className="text-xs font-semibold text-gray-700">
                                 {allocationCache[row.id].summary?.total_from_allocation || 0}/{row.quantity} kantong
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {row.component_type || 'WB'}
                               </div>
                               {allocationCache[row.id].summary && (
                                 <div className="w-full bg-gray-200 rounded-full h-1.5">
