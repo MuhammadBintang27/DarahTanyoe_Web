@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, AlertCircle } from "lucide-react";
+import { X, AlertCircle, CheckCircle2 } from "lucide-react";
 
 interface ConfirmPickupModalProps {
   isOpen: boolean;
@@ -13,7 +13,12 @@ interface ConfirmPickupModalProps {
   hospitalName: string;
   prefilledCode?: string;
   onClose: () => void;
-  onSubmit: (uniqueCode: string) => void;
+  onSubmit: (data: {
+    uniqueCode: string;
+    sample_verified: boolean;
+    sample_test_result: 'compatible' | 'incompatible';
+    sample_verification_notes?: string;
+  }) => void;
 }
 
 export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
@@ -29,6 +34,9 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
   onSubmit,
 }) => {
   const [uniqueCode, setUniqueCode] = useState(prefilledCode);
+  const [sampleVerified, setSampleVerified] = useState(false);
+  const [testResult, setTestResult] = useState<'compatible' | 'incompatible'>('compatible');
+  const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
 
   // Update uniqueCode when prefilledCode changes
@@ -53,13 +61,26 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
       return;
     }
 
+    if (!sampleVerified) {
+      setError("Verifikasi sample darah pasien wajib dilakukan");
+      return;
+    }
+
     setError("");
-    onSubmit(code);
+    onSubmit({
+      uniqueCode: code,
+      sample_verified: true,
+      sample_test_result: testResult,
+      sample_verification_notes: notes.trim() || undefined
+    });
   };
 
   const handleClose = () => {
     if (!loading) {
       setUniqueCode("");
+      setSampleVerified(false);
+      setTestResult('compatible');
+      setNotes("");
       setError("");
       onClose();
     }
@@ -75,7 +96,7 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full p-6">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-2xl font-bold text-gray-900">Konfirmasi Pickup</h3>
@@ -111,7 +132,7 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {/* Unique Code Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -127,22 +148,145 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
               disabled={loading}
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:bg-gray-100 uppercase tracking-wider text-lg font-mono"
             />
-            {error && (
-              <p className="mt-2 text-red-500 text-xs flex items-center gap-1">
-                <AlertCircle size={12} />
-                {error}
-              </p>
-            )}
             <p className="mt-2 text-gray-500 text-xs">
               Minta kode unik dari petugas rumah sakit untuk verifikasi pengambilan darah
             </p>
           </div>
 
+          {/* Sample Verification Section */}
+          <div className="border-t pt-5 mt-5">
+            <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+              <span className="bg-red-100 text-red-700 w-6 h-6 rounded-full flex items-center justify-center text-sm">!</span>
+              Verifikasi Sample Darah Pasien
+            </h4>
+
+            {/* Sample Verified Checkbox */}
+            <div className="mb-4">
+              <label className="flex items-start gap-3 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={sampleVerified}
+                  onChange={(e) => setSampleVerified(e.target.checked)}
+                  disabled={loading}
+                  className="mt-1 w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary disabled:opacity-50"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 group-hover:text-primary">
+                    Sample darah pasien telah diuji dan diverifikasi
+                  </span>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Centang setelah melakukan uji cross-match terhadap sample darah pasien
+                  </p>
+                </div>
+              </label>
+            </div>
+
+            {/* Test Result - Only show if sample verified */}
+            {sampleVerified && (
+              <div className="space-y-4 pl-8 border-l-4 border-primary/30">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Hasil Uji Cross-Match <span className="text-red-500">*</span>
+                  </label>
+                  <div className="space-y-2">
+                    <label className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                      testResult === 'compatible' 
+                        ? 'border-green-500 bg-green-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="testResult"
+                        value="compatible"
+                        checked={testResult === 'compatible'}
+                        onChange={(e) => setTestResult(e.target.value as 'compatible')}
+                        disabled={loading}
+                        className="w-4 h-4 text-green-500 border-gray-300 focus:ring-green-500"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                          <CheckCircle2 size={16} className="text-green-500" />
+                          Compatible - Darah dapat diserahkan
+                        </span>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Sample compatible, lanjutkan dengan penyerahan darah
+                        </p>
+                      </div>
+                    </label>
+
+                    <label className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                      testResult === 'incompatible' 
+                        ? 'border-red-500 bg-red-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}>
+                      <input
+                        type="radio"
+                        name="testResult"
+                        value="incompatible"
+                        checked={testResult === 'incompatible'}
+                        onChange={(e) => setTestResult(e.target.value as 'incompatible')}
+                        disabled={loading}
+                        className="w-4 h-4 text-red-500 border-gray-300 focus:ring-red-500"
+                      />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                          <X size={16} className="text-red-500" />
+                          Incompatible - Tolak permintaan
+                        </span>
+                        <p className="text-xs text-gray-600 mt-1">
+                          Sample tidak compatible, pickup dibatalkan dan permintaan ditolak
+                        </p>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Lab Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Catatan Laboratorium <span className="text-gray-400">(Opsional)</span>
+                  </label>
+                  <textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    disabled={loading}
+                    rows={3}
+                    placeholder="Contoh: Golongan darah sesuai, crossmatch negatif, sample dalam kondisi baik"
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent disabled:opacity-50 disabled:bg-gray-100 text-sm"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Catatan dari teknisi lab tentang hasil uji sample
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-700 text-sm flex items-center gap-2">
+                <AlertCircle size={16} />
+                {error}
+              </p>
+            </div>
+          )}
+
           {/* Warning */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-            <p className="text-yellow-800 text-xs flex items-start gap-2">
+          <div className={`border-2 rounded-lg p-3 ${
+            testResult === 'incompatible' 
+              ? 'bg-red-50 border-red-200' 
+              : 'bg-yellow-50 border-yellow-200'
+          }`}>
+            <p className={`text-xs flex items-start gap-2 ${
+              testResult === 'incompatible' ? 'text-red-800' : 'text-yellow-800'
+            }`}>
               <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
-              <span>Pastikan darah telah diserahkan sebelum konfirmasi. Tindakan ini tidak dapat dibatalkan.</span>
+              <span>
+                {testResult === 'incompatible' 
+                  ? 'PERHATIAN: Pickup akan dibatalkan dan permintaan darah akan ditolak. Tindakan ini tidak dapat dibatalkan.'
+                  : 'Pastikan sample telah diuji dan darah telah diserahkan sebelum konfirmasi. Tindakan ini tidak dapat dibatalkan.'}
+              </span>
             </p>
           </div>
 
@@ -158,10 +302,18 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
             </button>
             <button
               type="submit"
-              disabled={loading || !uniqueCode || uniqueCode.length !== 8}
-              className="flex-1 bg-green-500 hover:bg-green-600 text-white px-4 py-2.5 rounded-lg font-medium disabled:opacity-50 transition-colors"
+              disabled={loading || !uniqueCode || uniqueCode.length !== 8 || !sampleVerified}
+              className={`flex-1 px-4 py-2.5 text-white rounded-lg font-medium disabled:opacity-50 transition-colors ${
+                testResult === 'incompatible'
+                  ? 'bg-red-500 hover:bg-red-600'
+                  : 'bg-green-500 hover:bg-green-600'
+              }`}
             >
-              {loading ? "Memverifikasi..." : "Konfirmasi Pickup"}
+              {loading 
+                ? "Memproses..." 
+                : testResult === 'incompatible' 
+                  ? "Batalkan Pickup & Tolak Permintaan" 
+                  : "Serahkan Darah & Konfirmasi"}
             </button>
           </div>
         </form>

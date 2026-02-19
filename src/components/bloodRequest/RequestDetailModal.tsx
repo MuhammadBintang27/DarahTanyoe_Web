@@ -26,6 +26,26 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
   const urgency = request.urgency_level || 'medium';
   const urgencyInfo = urgencyLevelMap[urgency];
 
+  // Calculate age from birth date
+  const calculateAge = (birthDate: string): string => {
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    
+    return `${age} tahun`;
+  };
+
+  // Format NIK with dashes: xxxx-xxxx-xxxx-xxxx
+  const formatNIK = (nik: string): string => {
+    if (!nik || nik.length !== 16) return nik;
+    return `${nik.slice(0, 4)}-${nik.slice(4, 8)}-${nik.slice(8, 12)}-${nik.slice(12, 16)}`;
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col border border-gray-200">
@@ -68,7 +88,7 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
 
           {/* Patient Info */}
           <div className="bg-gray-50 border-2 border-gray-300 rounded-xl p-5">
-            <h4 className="font-bold text-gray-900 mb-4 text-base">
+            <h4 className="font-bold text-gray-900 mb-4 text-base flex items-center gap-2">
               Informasi Pasien
             </h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -80,6 +100,29 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">No. Telepon</label>
                 <p className="font-semibold text-gray-900">{request.phone_number || '-'}</p>
               </div>
+              
+              
+              
+              {request.patient_birth_date && (
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Tanggal Lahir</label>
+                  <p className="font-semibold text-gray-900">
+                    {formatDate(request.patient_birth_date)}
+                    <span className="text-gray-500 ml-2">({calculateAge(request.patient_birth_date)})</span>
+                  </p>
+                </div>
+              )}
+              
+              {request.patient_gender && (
+                <div>
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Jenis Kelamin</label>
+                  <p className="font-semibold text-gray-900 flex items-center gap-2">
+                     {request.patient_gender}
+                   
+                  </p>
+                </div>
+              )}
+              
               <div>
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Golongan Darah</label>
                 <p className="font-bold text-primary text-lg">{request.blood_type}</p>
@@ -90,8 +133,38 @@ export const RequestDetailModal: React.FC<RequestDetailModalProps> = ({
                   {request.quantity} {request.unit_type || 'kantong'}
                 </p>
               </div>
+              {/* Medical Identity Fields */}
+              {request.patient_nik && (
+                <div className="col-span-2">
+                  <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">NIK (Nomor Induk Kependudukan)</label>
+                  <p className="font-mono font-semibold text-gray-900 text-base">{formatNIK(request.patient_nik)}</p>
+                </div>
+              )}
             </div>
           </div>
+
+          {/* Doctor Information */}
+          {(request.prescribing_doctor || request.doctor_license) && (
+            <div className="bg-gray-50 border-2 border-gray-300 rounded-xl p-5">
+              <h4 className="font-bold text-gray-900 mb-4 text-base flex items-center gap-2">
+                 Dokter Penanggung Jawab
+              </h4>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {request.prescribing_doctor && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Nama Dokter</label>
+                    <p className="font-semibold text-gray-900">{request.prescribing_doctor}</p>
+                  </div>
+                )}
+                {request.doctor_license && (
+                  <div>
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">No. SIP/STR</label>
+                    <p className="font-mono font-semibold text-gray-900">{request.doctor_license}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Medical Condition */}
           {request.medical_condition && (

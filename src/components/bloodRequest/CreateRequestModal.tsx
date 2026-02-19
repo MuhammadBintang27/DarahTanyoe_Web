@@ -27,6 +27,12 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
     notes: '',
     urgency_level: 'medium',
     unit_type: 'kantong',
+    // Medical fields
+    patient_nik: '',
+    patient_birth_date: '',
+    patient_gender: 'Laki-laki',
+    prescribing_doctor: '',
+    doctor_license: '',
   });
 
   if (!isOpen) return null;
@@ -48,17 +54,36 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
       notes: '',
       urgency_level: 'medium',
       unit_type: 'kantong',
+      // Medical fields
+      patient_nik: '',
+      patient_birth_date: '',
+      patient_gender: 'Laki-laki',
+      prescribing_doctor: '',
+      doctor_license: '',
     });
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 my-8">
-        <h3 className="text-2xl font-bold text-gray-900 mb-6">
-          Buat Permintaan Darah Baru
-        </h3>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+        {/* Header - Fixed */}
+        <div className="px-6 pt-6 pb-4 border-b border-gray-200 flex-shrink-0">
+          <h3 className="text-2xl font-bold text-gray-900">
+            Buat Permintaan Darah Baru
+          </h3>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto px-6 py-4">
+          <form onSubmit={handleSubmit} className="space-y-4" id="create-request-form">
+
+          {/* Patient Identity Section */}
+          <div className="">
+            <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+              Data Identitas Pasien
+            </h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Nama Pasien <span className="text-red-500">*</span>
@@ -90,7 +115,105 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
               />
             </div>
           </div>
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  NIK (Nomor Induk Kependudukan) <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  maxLength={16}
+                  pattern="[0-9]{16}"
+                  value={formData.patient_nik}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, ''); // Only numbers
+                    setFormData({ ...formData, patient_nik: value });
+                  }}
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="16 digit NIK pasien"
+                />
+                {formData.patient_nik && formData.patient_nik.length !== 16 && (
+                  <p className="text-xs text-red-500 mt-1">NIK harus 16 digit ({formData.patient_nik.length}/16)</p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Tanggal Lahir <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  required
+                  max={new Date().toISOString().split('T')[0]}
+                  value={formData.patient_birth_date}
+                  onChange={(e) =>
+                    setFormData({ ...formData, patient_birth_date: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Jenis Kelamin <span className="text-red-500">*</span>
+                </label>
+                <select
+                  required
+                  value={formData.patient_gender}
+                  onChange={(e) =>
+                    setFormData({ ...formData, patient_gender: e.target.value as 'Laki-laki' | 'Perempuan' })
+                  }
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                >
+                  <option value="Laki-laki">Laki-laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+            </div>
+          </div>
 
+          {/* Doctor Information Section */}
+          <div className="pt-2 mt-2">
+            <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+               Data Dokter Penanggung Jawab
+            </h4>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nama Dokter <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={formData.prescribing_doctor}
+                  onChange={(e) =>
+                    setFormData({ ...formData, prescribing_doctor: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="Dr. Nama Dokter"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  No. SIP/STR <span className="text-gray-400 text-xs">(Opsional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={formData.doctor_license}
+                  onChange={(e) =>
+                    setFormData({ ...formData, doctor_license: e.target.value })
+                  }
+                  className="w-full border border-gray-300 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent"
+                  placeholder="Nomor izin praktik"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Blood Request Details */}
+          <div className="pt-2 mt-2">
+            <h4 className="text-sm font-bold text-gray-900 mb-3 flex items-center gap-2">
+             Detail Permintaan Darah
+            </h4>
+           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -170,6 +293,7 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
             </div>
           </div>
 
+          {/* Medical Condition */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Kondisi Medis <span className="text-red-500">*</span>
@@ -198,8 +322,12 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
               placeholder="Catatan atau informasi tambahan (opsional)..."
             />
           </div>
+          </form>
+        </div>
 
-          <div className="flex gap-3 justify-end pt-4">
+        {/* Footer - Fixed */}
+        <div className="px-6 py-4 border-t border-gray-200 flex-shrink-0 bg-white">
+          <div className="flex gap-3 justify-end">
             <button
               type="button"
               onClick={handleClose}
@@ -209,13 +337,14 @@ export const CreateRequestModal: React.FC<CreateRequestModalProps> = ({
             </button>
             <button
               type="submit"
+              form="create-request-form"
               disabled={loading}
               className="bg-secondary hover:bg-secondary/90 text-white px-6 py-2.5 rounded-lg font-medium disabled:opacity-50 transition-colors"
             >
               {loading ? 'Memproses...' : 'Buat Permintaan'}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

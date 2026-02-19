@@ -21,6 +21,12 @@ export interface BloodRequest {
   approved_at?: string;
   fulfilled_by?: string;
   fulfilled_at?: string;
+  // Medical fields (added for compliance)
+  patient_nik?: string;
+  patient_birth_date?: string;
+  patient_gender?: 'Laki-laki' | 'Perempuan';
+  prescribing_doctor?: string;
+  doctor_license?: string;
   requester?: {
     id: string;
     institution_name: string;
@@ -90,6 +96,12 @@ export interface CreateRequestForm {
   notes?: string;
   urgency_level?: 'low' | 'medium' | 'high' | 'urgent';
   unit_type?: string;
+  // Medical fields (required for new requests)
+  patient_nik: string;
+  patient_birth_date: string;
+  patient_gender: 'Laki-laki' | 'Perempuan';
+  prescribing_doctor: string;
+  doctor_license?: string;
 }
 
 // User Type

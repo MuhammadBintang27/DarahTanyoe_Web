@@ -111,7 +111,12 @@ const PickUp: React.FC = () => {
     setConfirmSchedule(schedule);
   };
 
-  const handleConfirmPickup = async (uniqueCode: string) => {
+  const handleConfirmPickup = async (data: {
+    uniqueCode: string;
+    sample_verified: boolean;
+    sample_test_result: 'compatible' | 'incompatible';
+    sample_verification_notes?: string;
+  }) => {
     if (!confirmSchedule) return;
 
     try {
@@ -121,8 +126,11 @@ const PickUp: React.FC = () => {
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_API_URL}/pickup-schedules/${confirmSchedule.id}/confirm`,
         { 
-          uniqueCode,
-          pmiId: user?.id
+          uniqueCode: data.uniqueCode,
+          pmiId: user?.id,
+          sample_verified: data.sample_verified,
+          sample_test_result: data.sample_test_result,
+          sample_verification_notes: data.sample_verification_notes
         },
         {
           headers: {
