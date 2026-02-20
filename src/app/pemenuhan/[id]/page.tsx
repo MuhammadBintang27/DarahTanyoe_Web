@@ -466,7 +466,7 @@ export default function FulfillmentDetailPage() {
                           <p className="font-semibold text-gray-900">
                             {confirmation.donor?.full_name || 'Unknown'}
                           </p>
-                          <p className="text-xs text-gray-600 mt-1">{confirmation.unique_code}</p>
+                          <p className="text-xs text-gray-600 mt-1">{confirmation.donor?.blood_type || '-'}</p>
                           <div className="mt-2 flex items-center gap-3 text-xs">
                             {confirmation.code_verified && (
                               <span className="text-green-600 font-medium">✓ Terverifikasi</span>

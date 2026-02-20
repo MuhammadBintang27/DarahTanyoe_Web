@@ -25,6 +25,8 @@ export default function VerifikasiPage() {
   // Modal verifikasi (meniru konsep Janji Donor)
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [manualCode, setManualCode] = useState('');
+  const [codeError, setCodeError] = useState('');
   // Track last processed code to avoid duplicate modal opens
   const [processedCode, setProcessedCode] = useState('');
   useEffect(() => {
@@ -74,19 +76,43 @@ export default function VerifikasiPage() {
     } else {
       // Masih confirmed → buka modal verifikasi dengan data pendonor
       setVerifyResult({ confirmation: conf });
+      setManualCode('');
+      setCodeError('');
       setShowVerifyModal(true);
     }
   };
 
+  const openVerifyModalForDonor = (confirmation: any) => {
+    // Buka modal untuk input kode manual dari donor
+    setVerifyResult({ confirmation });
+    setManualCode('');
+    setCodeError('');
+    setShowVerifyModal(true);
+  };
+
   const performVerification = async () => {
     try {
-      if (!user?.id || !verifyResult?.confirmation?.unique_code) {
+      // Validasi kode manual yang diinput
+      const inputCode = manualCode.trim().toUpperCase();
+      const dbCode = (verifyResult?.confirmation?.unique_code || '').toUpperCase();
+
+      if (!inputCode) {
+        setCodeError('Kode unik harus diisi');
+        return;
+      }
+
+      if (inputCode !== dbCode) {
+        setCodeError('Kode tidak cocok dengan data donor. Silakan cek kembali.');
+        return;
+      }
+
+      if (!user?.id) {
         toast.error('Data tidak lengkap untuk verifikasi');
         return;
       }
 
       const request: CodeVerificationRequest = {
-        unique_code: String(verifyResult.confirmation.unique_code),
+        unique_code: inputCode,
         pmi_id: user.id,
       };
 
@@ -104,6 +130,8 @@ export default function VerifikasiPage() {
       // Tutup modal dan reset input
       setShowVerifyModal(false);
       setVerifyResult(null);
+      setManualCode('');
+      setCodeError('');
       setQuickCode('');
       setProcessedCode('');
 
@@ -306,13 +334,7 @@ export default function VerifikasiPage() {
                     {isConfirmed && (
                       <button
                         className="w-full px-3 py-2 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors"
-                        onClick={() => {
-                          if (c.unique_code) {
-                            handleVerify(c.unique_code);
-                          } else {
-                            toast.error('Kode unik tidak tersedia');
-                          }
-                        }}
+                        onClick={() => openVerifyModalForDonor(c)}
                       >
                         Verifikasi Kode
                       </button>
@@ -454,36 +476,65 @@ export default function VerifikasiPage() {
           <div className="bg-white rounded-xl shadow-2xl max-w-md w-full border border-gray-200">
             {/* Header */}
             <div className="px-6 py-4 border-b border-gray-200">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">Verifikasi Berhasil</h2>
-                  <p className="text-sm text-gray-600">Data donor ditemukan</p>
-                </div>
-              </div>
+              <h2 className="text-xl font-bold text-gray-900">Verifikasi Kode Donor</h2>
+              <p className="text-sm text-gray-600 mt-1">Masukkan kode unik yang diberikan pendonor</p>
             </div>
 
             {/* Content */}
-            <div className="px-6 py-5">
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-                  <span className="text-xs font-medium text-gray-600">Nama Pendonor</span>
-                  <span className="text-sm font-bold text-gray-900">{verifyResult.confirmation?.donor?.full_name || verifyResult.donor?.full_name || 'N/A'}</span>
+            <div className="px-6 py-5 space-y-4">
+              {/* Donor Info */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 className="text-sm font-bold text-gray-900 mb-3">Data Pendonor</h3>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-600">Nama</span>
+                    <span className="text-sm font-bold text-gray-900">{verifyResult.confirmation?.donor?.full_name || verifyResult.donor?.full_name || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-600">No. Telepon</span>
+                    <span className="text-sm font-semibold text-gray-900">{verifyResult.confirmation?.donor?.phone_number || verifyResult.donor?.phone_number || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-gray-600">Golongan Darah</span>
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20 text-sm font-bold text-primary">
+                      {verifyResult.confirmation?.donor?.blood_type || verifyResult.donor?.blood_type || 'N/A'}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-                  <span className="text-xs font-medium text-gray-600">No. Telepon</span>
-                  <span className="text-sm font-semibold text-gray-900">{verifyResult.confirmation?.donor?.phone_number || verifyResult.donor?.phone_number || 'N/A'}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-medium text-gray-600">Golongan Darah</span>
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-md bg-primary/10 border border-primary/20 text-sm font-bold text-primary">
-                    {verifyResult.confirmation?.donor?.blood_type || verifyResult.donor?.blood_type || 'N/A'}
-                  </span>
-                </div>
+              </div>
+
+              {/* Code Input */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <label className="block text-sm font-medium text-gray-900 mb-2">
+                  Kode Unik Donor <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={manualCode}
+                  onChange={(e) => {
+                    setManualCode(e.target.value.toUpperCase());
+                    setCodeError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && manualCode.trim()) {
+                      performVerification();
+                    }
+                  }}
+                  placeholder="Masukkan kode dari donor"
+                  className="w-full bg-white border border-gray-300 rounded-lg px-4 py-2.5 text-gray-900 placeholder-gray-400 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all uppercase tracking-wider font-mono text-lg font-semibold"
+                  disabled={loading}
+                />
+                {codeError && (
+                  <p className="mt-2 text-xs text-red-600 flex items-center gap-1">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    {codeError}
+                  </p>
+                )}
+                <p className="mt-2 text-xs text-gray-500">
+                  Minta pendonor menunjukkan kode unik dari notifikasi atau SMS
+                </p>
               </div>
             </div>
 
@@ -491,34 +542,25 @@ export default function VerifikasiPage() {
             <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
               <button
                 type="button"
-                onClick={() => { setShowVerifyModal(false); setVerifyResult(null); }}
+                onClick={() => { 
+                  setShowVerifyModal(false); 
+                  setVerifyResult(null); 
+                  setManualCode('');
+                  setCodeError('');
+                }}
                 className="flex-1 px-4 py-2.5 rounded-lg text-gray-700 text-sm font-medium bg-white border border-gray-300 hover:bg-gray-50 transition-colors"
+                disabled={loading}
               >
-                Tutup
+                Batal
               </button>
-              {String(verifyResult.confirmation?.status) === 'confirmed' ? (
-                <button
-                  type="button"
-                  className="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors"
-                  onClick={performVerification}
-                >
-                  Verifikasi Kode
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors"
-                  onClick={() => {
-                    const confId = verifyResult.confirmation?.id || verifyResult.confirmation_id || confirmationId;
-                    setConfirmationId(confId || null);
-                    setCompleteForm({ quantity: 1, notes: '', medical_notes: '' });
-                    setShowVerifyModal(false);
-                    setShowCompleteModal(true);
-                  }}
-                >
-                  Selesaikan Donasi
-                </button>
-              )}
+              <button
+                type="button"
+                className="flex-1 px-4 py-2.5 rounded-lg text-white text-sm font-medium bg-green-500 hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={performVerification}
+                disabled={loading || !manualCode.trim()}
+              >
+                {loading ? 'Memverifikasi...' : 'Verifikasi Kode'}
+              </button>
             </div>
           </div>
         </div>
