@@ -36,6 +36,13 @@ export interface BloodRequest {
     address?: string;
     phone_number?: string;
   };
+  partner?: {
+    id: string;
+    institution_name: string;
+    institution_type?: 'hospital' | 'pmi';
+    address?: string;
+    phone_number?: string;
+  };
   partners?: {
     name: string;
     address?: string;

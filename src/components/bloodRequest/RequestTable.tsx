@@ -152,7 +152,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                 Tanggal
               </th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Lokasi
+                {userRole === 'hospital' ? 'PMI Tujuan' : 'Rumah Sakit'}
               </th>
               <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
                 Status
@@ -197,7 +197,10 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                   {formatDate(row.created_at)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {row.requester?.institution_name || '-'}
+                  {userRole === 'hospital' 
+                    ? (row.partner?.institution_name || row.partners?.name || '-') 
+                    : (row.requester?.institution_name || '-')
+                  }
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <StatusBadge status={row.status} />
