@@ -330,10 +330,26 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                         <span className="text-xs font-medium">Pickup Dijadwalkan</span>
                       </div>
                     )}
-                    {(row.status === 'rejected' ||
-                      row.status === 'completed' ||
-                      row.status === 'cancelled') && (
-                      <span className="text-xs text-gray-500">-</span>
+                    
+                    {row.status === 'rejected' && (
+                      <div className="flex items-center gap-2 text-red-600">
+                        <XCircle size={16} />
+                        <span className="text-xs font-medium">Ditolak</span>
+                      </div>
+                    )}
+                    
+                    {row.status === 'completed' && (
+                      <div className="flex items-center gap-2 text-green-600">
+                        <CheckCircle size={16} />
+                        <span className="text-xs font-medium">Selesai</span>
+                      </div>
+                    )}
+                    
+                    {row.status === 'cancelled' && (
+                      <div className="flex items-center gap-2 text-orange-600">
+                        <AlertCircle size={16} />
+                        <span className="text-xs font-medium">Dibatalkan</span>
+                      </div>
                     )}
                   </td>
                 )}
