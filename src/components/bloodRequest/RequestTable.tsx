@@ -286,7 +286,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                             className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
                           >
                             <Megaphone size={14} />
-                            Buat Kampanye Pemenuhan
+                            Buat Program Pemenuhan
                           </button>
                         )}
                       </div>
