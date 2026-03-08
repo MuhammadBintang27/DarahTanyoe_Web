@@ -72,7 +72,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
       setFulfillments(result.data || []);
       setPagination(result.pagination);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch fulfillments');
+      setError(err.message || 'Gagal memuat daftar pemenuhan');
       setFulfillments([]); // Reset to empty array on error
       console.error('Fetch fulfillments error:', err);
     } finally {
@@ -88,7 +88,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
       const data = await fulfillmentApi.getById(id);
       setCurrentFulfillment(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch fulfillment details');
+      setError(err.message || 'Gagal memuat detail pemenuhan');
       console.error('Fetch fulfillment by ID error:', err);
     } finally {
       setLoading(false);
@@ -105,7 +105,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
       setCurrentFulfillment(newFulfillment);
       return newFulfillment;
     } catch (err: any) {
-      setError(err.message || 'Failed to create fulfillment request');
+      setError(err.message || 'Gagal membuat permintaan pemenuhan');
       console.error('Create fulfillment error:', err);
       return null;
     } finally {
@@ -128,7 +128,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
         prev.map(f => f.id === id ? updated : f)
       );
     } catch (err: any) {
-      setError(err.message || 'Failed to initiate fulfillment');
+      setError(err.message || 'Gagal memulai pemenuhan');
       console.error('Initiate fulfillment error:', err);
     } finally {
       setLoading(false);
@@ -153,7 +153,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
         );
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to cancel fulfillment');
+      setError(err.message || 'Gagal membatalkan pemenuhan');
       console.error('Cancel fulfillment error:', err);
     } finally {
       setLoading(false);
@@ -168,7 +168,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
       const donors = await fulfillmentApi.getEligibleDonors(fulfillmentId);
       setEligibleDonors(donors);
     } catch (err: any) {
-      setError(err.message || 'Failed to search donors');
+      setError(err.message || 'Gagal mencari pendonor');
       console.error('Search donors error:', err);
     } finally {
       setLoading(false);
@@ -188,7 +188,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
       // Refresh fulfillment details
       await getFulfillmentById(fulfillmentId);
     } catch (err: any) {
-      setError(err.message || 'Failed to notify donors');
+      setError(err.message || 'Gagal mengirim notifikasi ke pendonor');
       console.error('Notify donors error:', err);
     } finally {
       setLoading(false);
@@ -203,7 +203,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
       const data = await fulfillmentApi.getConfirmations(fulfillmentId);
       setConfirmations(data);
     } catch (err: any) {
-      setError(err.message || 'Failed to fetch confirmations');
+      setError(err.message || 'Gagal memuat konfirmasi pendonor');
       console.error('Fetch confirmations error:', err);
     } finally {
       setLoading(false);
@@ -229,7 +229,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
       
       return result; // Return result for UI
     } catch (err: any) {
-      setError(err.message || 'Failed to verify code');
+      setError(err.message || 'Gagal memverifikasi kode');
       console.error('Verify code error:', err);
       throw err; // Re-throw for UI handling
     } finally {
@@ -254,7 +254,7 @@ export function FulfillmentProvider({ children }: { children: React.ReactNode })
         await getFulfillmentById(currentFulfillment.id);
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to complete donation');
+      setError(err.message || 'Gagal menyelesaikan donasi');
       console.error('Complete donation error:', err);
       throw err;
     } finally {

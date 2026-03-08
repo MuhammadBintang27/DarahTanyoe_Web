@@ -80,7 +80,7 @@ export const useAllocation = (requestId?: string) => {
     async (id?: string) => {
       const targetId = id || requestId;
       if (!targetId) {
-        setError('Request ID is required');
+        setError('ID permintaan wajib diisi');
         return null;
       }
 
@@ -122,7 +122,7 @@ export const useAllocation = (requestId?: string) => {
     async (id?: string) => {
       const targetId = id || requestId;
       if (!targetId) {
-        setError('Request ID is required');
+        setError('ID permintaan wajib diisi');
         return null;
       }
 
@@ -174,10 +174,10 @@ export const useAllocation = (requestId?: string) => {
           }
         );
 
-        toast.success('Pickup berhasil dikonfirmasi');
+        toast.success('Penjemputan berhasil dikonfirmasi');
         return response.data.data;
       } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Gagal confirm pickup';
+        const errorMsg = err.response?.data?.message || 'Gagal mengonfirmasi penjemputan';
         toast.error(errorMsg);
         throw err;
       }
@@ -200,7 +200,7 @@ export const useAllocation = (requestId?: string) => {
     ) => {
       const targetId = id || requestId;
       if (!targetId) {
-        throw new Error('Request ID is required');
+        throw new Error('ID permintaan wajib diisi');
       }
 
       try {
@@ -214,10 +214,10 @@ export const useAllocation = (requestId?: string) => {
           }
         );
 
-        toast.success('Pickup dari allocation + free stock berhasil dikonfirmasi');
+        toast.success('Penjemputan dari alokasi + stok bebas berhasil dikonfirmasi');
         return response.data.data;
       } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Gagal confirm pickup dengan free stock';
+        const errorMsg = err.response?.data?.message || 'Gagal mengonfirmasi penjemputan dengan stok bebas';
         toast.error(errorMsg);
         throw err;
       }
@@ -241,10 +241,10 @@ export const useAllocation = (requestId?: string) => {
           }
         );
 
-        toast.success('Allocation dibatalkan');
+        toast.success('Alokasi dibatalkan');
         return response.data.data;
       } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Gagal cancel allocation';
+        const errorMsg = err.response?.data?.message || 'Gagal membatalkan alokasi';
         toast.error(errorMsg);
         throw err;
       }
@@ -259,7 +259,7 @@ export const useAllocation = (requestId?: string) => {
     async (id?: string) => {
       const targetId = id || requestId;
       if (!targetId) {
-        setError('Request ID is required');
+        setError('ID permintaan wajib diisi');
         return null;
       }
 
@@ -295,7 +295,7 @@ export const useAllocation = (requestId?: string) => {
     async (id?: string) => {
       const targetId = id || requestId;
       if (!targetId) {
-        setError('Request ID is required');
+        setError('ID permintaan wajib diisi');
         return null;
       }
 
@@ -313,7 +313,7 @@ export const useAllocation = (requestId?: string) => {
 
         return response.data.data;
       } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Gagal memuat pending pickups';
+        const errorMsg = err.response?.data?.message || 'Gagal memuat penjemputan yang tertunda';
         setError(errorMsg);
         toast.error(errorMsg);
         return null;

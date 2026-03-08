@@ -34,7 +34,7 @@ const HospitalDashboard = () => {
     return (
       <ProtectedRoute>
         <div className="text-center py-10">
-          <p className="text-red-500">Access denied. This page is for hospitals only.</p>
+          <p className="text-red-500">Akses ditolak. Halaman ini hanya untuk rumah sakit.</p>
         </div>
       </ProtectedRoute>
     );
@@ -68,7 +68,7 @@ const HospitalDashboard = () => {
                   : 'hover:bg-primary/90'
               }`}
             >
-              {isRefreshing ? 'Menyegarkan…' : 'Refresh'}
+              {isRefreshing ? 'Menyegarkan…' : 'Muat Ulang'}
             </button>
           </div>
         </div>
@@ -76,7 +76,7 @@ const HospitalDashboard = () => {
         {/* Error Message */}
         {error && (
           <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200">
-            <p className="font-medium">Error loading dashboard</p>
+            <p className="font-medium">Gagal memuat dashboard</p>
             <p className="text-sm">{error}</p>
           </div>
         )}
@@ -86,7 +86,7 @@ const HospitalDashboard = () => {
           <MetricCard
             title="Permintaan Aktif"
             value={loading ? '-' : dashboardData?.activeRequests || 0}
-            subtitle="requests menunggu"
+            subtitle="permintaan menunggu"
             color="blue"
             isLoading={loading}
             variant="neutral"
@@ -94,13 +94,13 @@ const HospitalDashboard = () => {
           <MetricCard
             title="Permintaan Selesai"
             value={loading ? '-' : dashboardData?.completedRequests || 0}
-            subtitle="requests terpenuhi"
+            subtitle="permintaan terpenuhi"
             color="green"
             isLoading={loading}
             variant="neutral"
           />
           <MetricCard
-            title="Ready for Pickup"
+            title="Siap Dijemput"
             value={loading ? '-' : dashboardData?.readyForPickup || 0}
             subtitle="menunggu diambil"
             color="yellow"
@@ -110,7 +110,7 @@ const HospitalDashboard = () => {
           <MetricCard
             title="Tingkat Pemenuhan"
             value={loading ? '-' : `${dashboardData?.fulfillmentRate || 0}%`}
-            subtitle="fulfillment rate"
+            subtitle="tingkat pemenuhan"
             color="purple"
             isLoading={loading}
             variant="neutral"

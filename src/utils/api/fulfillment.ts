@@ -50,7 +50,7 @@ export const fulfillmentApi = {
       const response = await apiClient.post('/fulfillment', data);
       return response.data.data.fulfillment;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to create fulfillment request');
+      throw new Error(error.response?.data?.message || 'Gagal membuat permintaan pemenuhan');
     }
   },
 
@@ -62,7 +62,7 @@ export const fulfillmentApi = {
       const response = await apiClient.post(`/fulfillment/${fulfillmentId}/initiate`);
       return response.data.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to initiate fulfillment');
+      throw new Error(error.response?.data?.message || 'Gagal memulai pemenuhan');
     }
   },
 
@@ -105,7 +105,7 @@ export const fulfillmentApi = {
         }
       };
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch fulfillments');
+      throw new Error(error.response?.data?.message || 'Gagal memuat daftar pemenuhan');
     }
   },
 
@@ -117,7 +117,7 @@ export const fulfillmentApi = {
       const response = await apiClient.get(`/fulfillment/${id}`);
       return response.data.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch fulfillment details');
+      throw new Error(error.response?.data?.message || 'Gagal memuat detail pemenuhan');
     }
   },
 
@@ -153,7 +153,7 @@ export const fulfillmentApi = {
       const response = await apiClient.get(`/fulfillment/stats${params}`);
       return response.data.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch fulfillment statistics');
+      throw new Error(error.response?.data?.message || 'Gagal memuat statistik pemenuhan');
     }
   },
 
@@ -169,7 +169,7 @@ export const fulfillmentApi = {
       const response = await apiClient.post(`/fulfillment/${request.fulfillment_id}/initiate`);
       return response.data.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to search donors');
+      throw new Error(error.response?.data?.message || 'Gagal mencari pendonor');
     }
   },
 
@@ -181,7 +181,7 @@ export const fulfillmentApi = {
       const response = await apiClient.get(`/fulfillment/${fulfillmentId}`);
       return response.data.data.eligible_donors || [];
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch eligible donors');
+      throw new Error(error.response?.data?.message || 'Gagal memuat pendonor yang memenuhi syarat');
     }
   },
 
@@ -201,7 +201,7 @@ export const fulfillmentApi = {
       const response = await apiClient.post(`/fulfillment/${request.fulfillment_id}/initiate`);
       return response.data.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to retry donor search');
+      throw new Error(error.response?.data?.message || 'Gagal mengulang pencarian pendonor');
     }
   },
 
@@ -217,7 +217,7 @@ export const fulfillmentApi = {
       const response = await apiClient.post('/fulfillment/verify-code', request);
       return response.data.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Invalid or expired code');
+      throw new Error(error.response?.data?.message || 'Kode tidak valid atau sudah kedaluwarsa');
     }
   },
 
@@ -226,7 +226,7 @@ export const fulfillmentApi = {
    */
   async getConfirmation(id: string): Promise<DonorConfirmation> {
     // This would be replaced by backend endpoint if needed
-    throw new Error('Not implemented - use getConfirmations instead');
+    throw new Error('Belum diimplementasikan - gunakan getConfirmations');
   },
 
   /**
@@ -237,7 +237,7 @@ export const fulfillmentApi = {
       const response = await apiClient.get(`/fulfillment/${fulfillmentId}/confirmations`);
       return response.data.data || [];
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to fetch confirmations');
+      throw new Error(error.response?.data?.message || 'Gagal memuat konfirmasi pendonor');
     }
   },
 
@@ -253,7 +253,7 @@ export const fulfillmentApi = {
       const response = await apiClient.post('/fulfillment/complete-donation', request);
       return response.data.data;
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to complete donation');
+      throw new Error(error.response?.data?.message || 'Gagal menyelesaikan donasi');
     }
   },
 
@@ -271,7 +271,7 @@ export const fulfillmentApi = {
         cancellation_reason: request.reason
       });
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to cancel fulfillment');
+      throw new Error(error.response?.data?.message || 'Gagal membatalkan pemenuhan');
     }
   },
 
@@ -282,7 +282,7 @@ export const fulfillmentApi = {
     try {
       await apiClient.patch(`/fulfillment/${id}/status`, { status });
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to update status');
+      throw new Error(error.response?.data?.message || 'Gagal memperbarui status');
     }
   },
 
@@ -293,7 +293,7 @@ export const fulfillmentApi = {
     try {
       await apiClient.patch(`/fulfillment/${id}/status`, { notes });
     } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Failed to update notes');
+      throw new Error(error.response?.data?.message || 'Gagal memperbarui catatan');
     }
   },
 

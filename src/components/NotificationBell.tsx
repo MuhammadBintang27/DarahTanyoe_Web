@@ -137,7 +137,7 @@ const NotificationBell = ({ institutionId }: NotificationBellProps) => {
             {!institutionId ? (
               <div className="flex flex-col items-center justify-center p-8 text-gray-500">
                 <AlertCircle className="w-12 h-12 mb-3 text-yellow-500" />
-                <p className="text-sm font-medium">User belum login</p>
+                <p className="text-sm font-medium">Pengguna belum masuk</p>
                 <p className="text-xs text-gray-400 mt-1">Silakan login terlebih dahulu</p>
               </div>
             ) : loading ? (
@@ -207,7 +207,7 @@ const NotificationBell = ({ institutionId }: NotificationBellProps) => {
                           
                           {notification.priority === 'critical' && (
                             <span className="px-2 py-0.5 text-xs font-bold text-red-700 bg-red-100 rounded-full">
-                              🔴 Urgent
+                              🔴 Mendesak
                             </span>
                           )}
                           {notification.priority === 'high' && (

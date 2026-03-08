@@ -42,7 +42,7 @@ const PMIDashboard = () => {
     return (
       <ProtectedRoute>
         <div className="text-center py-10">
-          <p className="text-red-500">Access denied. This page is for PMI only.</p>
+          <p className="text-red-500">Akses ditolak. Halaman ini hanya untuk PMI.</p>
         </div>
       </ProtectedRoute>
     );
@@ -76,7 +76,7 @@ const PMIDashboard = () => {
                   : 'hover:bg-primary/90'
               }`}
             >
-              {isRefreshing ? 'Menyegarkan…' : 'Refresh'}
+              {isRefreshing ? 'Menyegarkan…' : 'Muat Ulang'}
             </button>
           </div>
         </div>
@@ -84,7 +84,7 @@ const PMIDashboard = () => {
         {/* Error Message */}
         {error && (
           <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200">
-            <p className="font-medium">Error loading dashboard</p>
+            <p className="font-medium">Gagal memuat dashboard</p>
             <p className="text-sm">{error}</p>
           </div>
         )}
@@ -102,7 +102,7 @@ const PMIDashboard = () => {
           <MetricCard
             title="Permintaan Berjalan"
             value={loading ? '-' : dashboardData?.runningRequests || 0}
-            subtitle="requests menunggu"
+            subtitle="permintaan menunggu"
             color="yellow"
             isLoading={loading}
             variant="neutral"
@@ -110,7 +110,7 @@ const PMIDashboard = () => {
           <MetricCard
             title="Permintaan Selesai"
             value={loading ? '-' : dashboardData?.completedRequests || 0}
-            subtitle="requests terpenuhi"
+            subtitle="permintaan terpenuhi"
             color="green"
             isLoading={loading}
             variant="neutral"
@@ -118,7 +118,7 @@ const PMIDashboard = () => {
           <MetricCard
             title="Tingkat Pemenuhan"
             value={loading ? '-' : `${dashboardData?.fulfillmentRate || 0}%`}
-            subtitle="fulfillment rate"
+            subtitle="tingkat pemenuhan"
             color="purple"
             isLoading={loading}
             variant="neutral"
@@ -142,7 +142,7 @@ const PMIDashboard = () => {
                 {loading ? (
                   <tr>
                     <td colSpan={4} className="text-center py-8 text-gray-500">
-                      Loading...
+                      Memuat...
                     </td>
                   </tr>
                 ) : (
@@ -156,11 +156,11 @@ const PMIDashboard = () => {
                       <td className="py-3 px-4 text-center">
                         {stock.quantity === 0 ? (
                           <span className="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-semibold">
-                            URGENT
+                            MENDESAK
                           </span>
                         ) : stock.quantity < 5 ? (
                           <span className="inline-block bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-xs font-semibold">
-                            LOW
+                            RENDAH
                           </span>
                         ) : (
                           <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-semibold">

@@ -237,7 +237,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                               )}
                             </>
                           ) : (
-                            <span className="text-xs text-gray-500">Loading...</span>
+                            <span className="text-xs text-gray-500">Memuat...</span>
                           )}
                         </div>
                       ) : (
@@ -277,7 +277,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                             className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
                           >
                             <Calendar size={14} />
-                            Buat Jadwal Pickup
+                            Buat Jadwal Penjemputan
                           </button>
                         ) : (
                           <button
@@ -300,7 +300,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                             className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
                           >
                             <Calendar size={14} />
-                            Buat Jadwal Pickup
+                            Buat Jadwal Penjemputan
                           </button>
                         )}
                       </div>
@@ -314,7 +314,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                             className="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium flex items-center gap-1 disabled:opacity-50 transition-colors"
                           >
                             <Calendar size={14} />
-                            Buat Jadwal Pickup
+                            Buat Jadwal Penjemputan
                           </button>
                         ) : (
                           <div className="flex items-center gap-2 text-blue-600">
@@ -327,7 +327,7 @@ export const RequestTable: React.FC<RequestTableProps> = ({
                     {row.status === 'pickup_scheduled' && (
                       <div className="flex items-center gap-2 text-purple-600">
                         <Package size={16} />
-                        <span className="text-xs font-medium">Pickup Dijadwalkan</span>
+                        <span className="text-xs font-medium">Penjemputan Dijadwalkan</span>
                       </div>
                     )}
                     

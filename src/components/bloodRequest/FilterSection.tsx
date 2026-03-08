@@ -26,7 +26,7 @@ export const FilterSection: React.FC<FilterSectionProps> = ({
     <div className="flex gap-4 flex-wrap bg-white/95 backdrop-blur-sm rounded-xl shadow-lg p-4 items-center">
       <div className="flex items-center gap-2">
         <Filter size={20} className="text-primary" />
-        <span className="font-semibold text-gray-700">Filter By:</span>
+        <span className="font-semibold text-gray-700">Filter Berdasarkan:</span>
       </div>
 
       <div className="flex flex-col gap-1">

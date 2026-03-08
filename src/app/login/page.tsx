@@ -79,13 +79,13 @@ const LoginContent = () => {
         console.log('[LoginPage] Login successful, redirecting to:', targetPath);
         router.replace(targetPath);
       } else {
-        const errorMessage = response.data.message || "Login failed";
+        const errorMessage = response.data.message || "Login gagal";
         setError(errorMessage);
         toast.error(errorMessage);
       }
     } catch (err: any) {
       console.error('[LoginPage] Login error:', err);
-      const errorMessage = err.response?.data?.message || "An error occurred during login";
+      const errorMessage = err.response?.data?.message || "Terjadi kesalahan saat login";
       setError(errorMessage);
       toast.error(errorMessage);
     } finally {
@@ -184,14 +184,10 @@ const LoginContent = () => {
 
 const LoginPage = () => {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Memuat...</div>}>
       <LoginContent />
     </Suspense>
   );
 };
 
 export default LoginPage;
-
-function successToast(arg0: string) {
-  throw new Error("Function not implemented.");
-}

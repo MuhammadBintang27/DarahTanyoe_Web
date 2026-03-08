@@ -228,7 +228,7 @@ export default function NotificationsPage() {
 
                       {notification.priority === 'critical' && (
                         <span className="px-2.5 py-1 text-xs font-bold text-red-700 bg-red-100 rounded-full">
-                          🔴 Urgent
+                          🔴 Mendesak
                         </span>
                       )}
                       {notification.priority === 'high' && (

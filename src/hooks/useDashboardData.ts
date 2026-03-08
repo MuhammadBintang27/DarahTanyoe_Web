@@ -159,7 +159,7 @@ export const useHospitalDashboard = (): UseDashboardDataReturn => {
         recentRequests: requests.slice(0, 5),
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch hospital data';
+      const errorMessage = err instanceof Error ? err.message : 'Gagal memuat data dashboard rumah sakit';
       setError(errorMessage);
       console.error('[Hospital Dashboard]', errorMessage);
     } finally {
@@ -341,7 +341,7 @@ export const usePMIDashboard = (): UseDashboardDataReturn => {
         availableYears,
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch PMI data';
+      const errorMessage = err instanceof Error ? err.message : 'Gagal memuat data dashboard PMI';
       setError(errorMessage);
       console.error('[PMI Dashboard]', errorMessage);
     } finally {

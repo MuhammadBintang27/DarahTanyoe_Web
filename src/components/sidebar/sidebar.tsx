@@ -47,7 +47,7 @@ export const Sidebar = () => {
       url: "/stok-darah",
     },
     {
-      name: "Pick Up",
+      name: "Penjemputan",
       icon: () => <TruckIcon color="#9AA2AC" />,
       url: "/pickup",
     },
@@ -76,7 +76,7 @@ export const Sidebar = () => {
       url: "/informasi-pmi",
     },
     {
-      name: "Pick Up",
+      name: "Penjemputan",
       icon: () => <TruckIcon color="#9AA2AC" />,
       url: "/pickup",
     },

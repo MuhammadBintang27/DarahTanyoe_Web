@@ -99,7 +99,7 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <h3 className="text-2xl font-bold text-gray-900">Konfirmasi Pickup</h3>
+          <h3 className="text-2xl font-bold text-gray-900">Konfirmasi Penjemputan</h3>
           <button
             onClick={handleClose}
             disabled={loading}
@@ -109,7 +109,7 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
           </button>
         </div>
 
-        {/* Pickup Info */}
+        {/* Informasi Penjemputan */}
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -284,8 +284,8 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
               <AlertCircle size={14} className="flex-shrink-0 mt-0.5" />
               <span>
                 {testResult === 'incompatible' 
-                  ? 'PERHATIAN: Pickup akan dibatalkan dan permintaan darah akan ditolak. Tindakan ini tidak dapat dibatalkan.'
-                  : 'Pastikan sample telah diuji dan darah telah diserahkan sebelum konfirmasi. Tindakan ini tidak dapat dibatalkan.'}
+                  ? 'PERHATIAN: Penjemputan akan dibatalkan dan permintaan darah akan ditolak. Tindakan ini tidak dapat dibatalkan.'
+                  : 'Pastikan sampel telah diuji dan darah telah diserahkan sebelum konfirmasi. Tindakan ini tidak dapat dibatalkan.'}
               </span>
             </p>
           </div>
@@ -312,7 +312,7 @@ export const ConfirmPickupModal: React.FC<ConfirmPickupModalProps> = ({
               {loading 
                 ? "Memproses..." 
                 : testResult === 'incompatible' 
-                  ? "Batalkan Pickup & Tolak Permintaan" 
+                  ? "Batalkan Penjemputan & Tolak Permintaan" 
                   : "Serahkan Darah & Konfirmasi"}
             </button>
           </div>
