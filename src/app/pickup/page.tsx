@@ -94,7 +94,7 @@ const PickUp: React.FC = () => {
     } catch (error: any) {
       console.error("Error fetching pickup schedules:", error);
       if (error.response?.status !== 404) {
-        toast.error("Gagal memuat jadwal penjemputan");
+        toast.error("Gagal memuat jadwal pengambilan");
       }
       setSchedules([]);
     } finally {
@@ -139,12 +139,12 @@ const PickUp: React.FC = () => {
         }
       );
 
-      toast.success(response.data.message || "Penjemputan berhasil dikonfirmasi");
+      toast.success(response.data.message || "Pengambilan berhasil dikonfirmasi");
       setConfirmSchedule(null);
       fetchPickupSchedules();
     } catch (error: any) {
       console.error("Error confirming pickup:", error);
-      toast.error(error.response?.data?.message || "Gagal mengonfirmasi penjemputan");
+      toast.error(error.response?.data?.message || "Gagal mengonfirmasi pengambilan");
     } finally {
       setConfirmLoading(false);
     }
@@ -224,7 +224,7 @@ const PickUp: React.FC = () => {
       <div className="flex flex-col gap-6 p-6">
         {/* Header */}
         <div className="mb-6">
-          <h2 className="font-bold text-3xl text-white">Jadwal Penjemputan</h2>
+          <h2 className="font-bold text-3xl text-white">Jadwal Pengambilan</h2>
           <p className="mt-2 text-lg text-white font-semibold">Kelola jadwal pengambilan darah</p>
         </div>
 
@@ -269,7 +269,7 @@ const PickUp: React.FC = () => {
             {/* Date Filter - For all users */}
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-2">
-                Tanggal Penjemputan
+                Tanggal Pengambilan
               </label>
               <input
                 type="date"
@@ -358,7 +358,7 @@ const PickUp: React.FC = () => {
             </div>
             <p className="text-gray-900 text-lg font-bold mb-2">Belum Ada Jadwal</p>
             <p className="text-gray-600 text-sm">
-              Jadwal penjemputan akan muncul setelah permintaan darah disetujui oleh PMI
+              Jadwal pengambilan akan muncul setelah permintaan darah disetujui oleh PMI
             </p>
           </div>
         ) : (
