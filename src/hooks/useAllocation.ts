@@ -174,10 +174,10 @@ export const useAllocation = (requestId?: string) => {
           }
         );
 
-        toast.success('Penjemputan berhasil dikonfirmasi');
+        toast.success('Pengambilan berhasil dikonfirmasi');
         return response.data.data;
       } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Gagal mengonfirmasi penjemputan';
+        const errorMsg = err.response?.data?.message || 'Gagal mengonfirmasi pengambilan';
         toast.error(errorMsg);
         throw err;
       }
@@ -214,10 +214,10 @@ export const useAllocation = (requestId?: string) => {
           }
         );
 
-        toast.success('Penjemputan dari alokasi + stok bebas berhasil dikonfirmasi');
+        toast.success('Pengambilan dari alokasi + stok bebas berhasil dikonfirmasi');
         return response.data.data;
       } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Gagal mengonfirmasi penjemputan dengan stok bebas';
+        const errorMsg = err.response?.data?.message || 'Gagal mengonfirmasi pengambilan dengan stok bebas';
         toast.error(errorMsg);
         throw err;
       }
@@ -313,7 +313,7 @@ export const useAllocation = (requestId?: string) => {
 
         return response.data.data;
       } catch (err: any) {
-        const errorMsg = err.response?.data?.message || 'Gagal memuat penjemputan yang tertunda';
+        const errorMsg = err.response?.data?.message || 'Gagal memuat pengambilan yang tertunda';
         setError(errorMsg);
         toast.error(errorMsg);
         return null;

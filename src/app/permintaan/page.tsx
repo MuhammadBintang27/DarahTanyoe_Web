@@ -212,10 +212,10 @@ const Permintaan: React.FC = () => {
         const allocCount = pickupData.allocations?.length ?? 0;
         const stockCount = pickupData.free_stock?.length ?? 0;
         const message = stockCount > 0 && allocCount > 0
-          ? `Jadwal penjemputan berhasil dibuat! Darah dari ${allocCount} alokasi + ${stockCount} stok bebas`
+          ? `Jadwal pengambilan berhasil dibuat! Darah dari ${allocCount} alokasi + ${stockCount} stok bebas`
           : stockCount > 0
-          ? `Jadwal penjemputan berhasil dibuat! Darah dari ${stockCount} stok bebas`
-          : `Jadwal penjemputan berhasil dibuat! Darah dari ${allocCount} alokasi`;
+          ? `Jadwal pengambilan berhasil dibuat! Darah dari ${stockCount} stok bebas`
+          : `Jadwal pengambilan berhasil dibuat! Darah dari ${allocCount} alokasi`;
         
         toast.success(response.data.message || message);
       } else {
@@ -232,7 +232,7 @@ const Permintaan: React.FC = () => {
       }, 500);
     } catch (error: any) {
       console.error("Error creating pickup schedule:", error);
-      toast.error(error.response?.data?.message || "Gagal membuat jadwal penjemputan");
+      toast.error(error.response?.data?.message || "Gagal membuat jadwal pengambilan");
     } finally {
       setLoading((prev) => ({ ...prev, [`pickup_${showPickupModal.id}`]: false }));
     }

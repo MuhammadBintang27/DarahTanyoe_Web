@@ -381,10 +381,10 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
             </>
           )}
 
-          {/* Tanggal Penjemputan */}
+          {/* Tanggal Pengambilan */}
           <div className="border-t-2 border-gray-200 pt-5">
             <label className="block text-sm font-bold text-gray-900 mb-2">
-              Tanggal Penjemputan <span className="text-red-500">*</span>
+              Tanggal Pengambilan <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -400,10 +400,10 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
             </div>
           </div>
 
-          {/* Waktu Penjemputan */}
+          {/* Waktu Pengambilan */}
           <div>
             <label className="block text-sm font-bold text-gray-900 mb-2">
-              Jam Penjemputan <span className="text-red-500">*</span>
+              Jam Pengambilan <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -448,7 +448,7 @@ export const CreatePickupModal: React.FC<CreatePickupModalProps> = ({
               disabled={loading || !canSubmit}
               className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3 rounded-xl transition-all disabled:opacity-50 disabled:bg-gray-300 shadow-md"
             >
-              {loading ? "Membuat Jadwal..." : "Buat Jadwal Penjemputan"}
+              {loading ? "Membuat Jadwal..." : "Buat Jadwal Pengambilan"}
             </button>
           </div>
         </form>

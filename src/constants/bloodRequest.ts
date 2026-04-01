@@ -17,7 +17,7 @@ export const STATUS_MAP: Record<RequestStatus, StatusInfo> = {
     bgColor: 'bg-blue-100',
   },
   pickup_scheduled: {
-    label: 'Menunggu Penjemputan',
+    label: 'Menunggu Pengambilan',
     color: 'text-purple-800',
     bgColor: 'bg-purple-100',
   },
@@ -57,7 +57,7 @@ export const STATUS_OPTIONS = [
   { value: 'pending', label: 'Menunggu' },
   { value: 'approved', label: 'Disetujui' },
   { value: 'in_fulfillment', label: 'Dalam Pemenuhan' },
-  { value: 'pickup_scheduled', label: 'Jadwal Penjemputan' },
+  { value: 'pickup_scheduled', label: 'Jadwal Pengambilan' },
   { value: 'rejected', label: 'Ditolak' },
   { value: 'ready', label: 'Siap' },
   { value: 'confirmed', label: 'Dikonfirmasi' },
